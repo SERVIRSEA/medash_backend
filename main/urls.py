@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import api
 
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('api/landcover-map/', views.get_landcover_map), 
     path('api/download-landcover-map/', views.get_download_landcover_map),
     path('api/landcover-stats/', views.get_landcover_stats),
+    path('api/mmr/', api.api_myanmar)
 ]

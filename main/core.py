@@ -4,9 +4,7 @@ from ee.ee_exception import EEException
 from django.http import JsonResponse
 from django.conf import settings
 
-
 class GEEApi():
-
     TREE_CANOPY = ee.ImageCollection(settings.TREE_CANOPY)
     TREE_HEIGHT = ee.ImageCollection(settings.TREE_HEIGHT)
     GLAD_ALERT = settings.GLAD_ALERT
@@ -122,7 +120,6 @@ class GEEApi():
         return myArray
         
     def Calculation(self, ref_start,ref_end,series_start,series_end):
-
         IMAGE_COLLECTION_ID = ee.ImageCollection('MODIS/006/MYD13A1')
         collection = ee.ImageCollection(IMAGE_COLLECTION_ID) #.filterDate('2008-01-01', '2010-12-31').sort('system:time_start')
         reference = collection.filterDate(ref_start,ref_end ).sort('system:time_start').select('EVI')
