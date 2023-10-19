@@ -22,7 +22,8 @@ def api_myanmar(request):
         request_methods = [
             'get-evi-map',
             'get-evi-pie',
-            'get-evi-line'
+            'get-evi-line',
+            'get-landcover-map'
         ]
 
         if action in request_methods:
@@ -53,7 +54,6 @@ def api_myanmar(request):
                         data = json.load(file)
                         return Response(data)
                 else:
-                    core = GEEApi(area_type, area_id)
                     data = core.calcPie(refLow, refHigh, studyLow, studyHigh)
                     if data:
                         with open(file_path, 'w') as f:
@@ -68,8 +68,8 @@ def api_myanmar(request):
                     # Read and parse the JSON data
                     with open(file_path, 'r') as file:
                         data = json.load(file)
+                        return Response(data)
                 else:
-                    core = GEEApi(area_type, area_id)
                     data = core.GetPolygonTimeSeries(refLow, refHigh, studyLow, studyHigh)
                     if data:
                         with open(file_path, 'w') as f:
@@ -77,5 +77,14 @@ def api_myanmar(request):
                         return Response(data)
                     else:
                         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            #=============== LandCover ===================*/
+            elif action == 'get-landcover-map':
+                data = core.getLandCoverMap(year)
 
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                    
     return Response({'error': 'Bad request, action parameter is required or not valid.'}, status=status.HTTP_400_BAD_REQUEST)

@@ -6,6 +6,7 @@ from django.conf import settings
 
 class GEEApi():
     MMR_COUNTRY_BOUNDARY = settings.MMR_COUNTRY_BOUNDARY
+    MMR_LANDCOVER = settings.MMR_LANDCOVER
 
     def __init__(self, area_type, area_id): 
 
@@ -266,3 +267,95 @@ class GEEApi():
             return {
                 'success': 'not success'
             }
+
+    #===================== LandCover ==========================*/
+    LANDCOVERCLASSES = [
+        {
+            'name': 'Unknown',
+            'value': '0',
+            'color': '6f6f6f'
+        },
+        {
+            'name': 'Surface Water',
+            'value': '1',
+            'color': '0000ff'
+        },
+        {
+            'name': 'Snow and Ice',
+            'value': '2',
+            'color': '808080'
+        },
+        {
+            'name': 'Mangroves',
+            'value': '3',
+            'color': '556b2f'
+        },
+        {
+            'name': 'Cropland',
+            'value': '4',
+            'color': '7cfc00'
+        },
+        {
+            'name': 'Urban and Built up',
+            'value': '5',
+            'color': '8b0000'
+        },
+        {
+            'name': 'Grassland',
+            'value': '6',
+            'color': '20b2aa'
+        },
+        {
+            'name': 'Closed Forest',
+            'value': '7',
+            'color': '006400'
+        },
+        {
+            'name': 'Open Forest',
+            'value': '8',
+            'color': '90ee90'
+        },
+        {
+            'name': 'Wetland',
+            'value': '9',
+            'color': '42f4c2'
+        },
+        {
+            'name': 'Woody',
+            'value': '10',
+            'color': '8b4513'
+        },
+        {
+            'name': 'Other land',
+            'value': '11',
+            'color': '6f6f6f'
+        }
+    ]
+
+    INDEX_CLASS = {}
+    for _class in LANDCOVERCLASSES:
+        INDEX_CLASS[int(_class['value'])] = _class['name']
+
+    def getLandCoverMap(self, year):
+        landCoverIC = ee.ImageCollection(GEEApi.MMR_LANDCOVER)
+        image = landCoverIC.filterDate('%s-01-01' % year,'%s-12-31' % year).mean()
+        image = image.select('classification')
+
+        # Start with creating false boolean image
+        masked_image = image.eq(ee.Number(100))
+
+        classes=range(0, 11)
+
+        # get the classes
+        for _class in classes:
+            _mask = image.eq(ee.Number(int(_class)))
+            masked_image = masked_image.add(_mask)
+        palette = []
+        for _class in GEEApi.LANDCOVERCLASSES:
+            palette.append(_class['color'])
+
+        palette = ','.join(palette)
+
+        image = image.updateMask(masked_image).clip(self.geometry)
+        lcMap = self.getTileLayerUrl(image.visualize(min=0, max=str(len(GEEApi.LANDCOVERCLASSES) - 1), palette=palette))
+        return lcMap
