@@ -35,6 +35,9 @@ def api(request):
             'get-forest-gain-map',
             'get-forest-loss-map',
             'get-forest-extent-map',
+            'get-forest-nonforest-chart-data',
+            'get-forest-gainloss-area',
+            'get-forest-change-gainloss-chart-data',
             'get-glad-alert-map',
             'get-sar-alert-map',
             'get-glad-alert-chart-data',
@@ -53,6 +56,9 @@ def api(request):
             year = request.query_params.get('year', '') 
 
             core = GEEApi(area_type, area_id)
+
+            tree_canopy_definition = 10
+            tree_height_definition = 5 
 
             #============= EVI ==========*/
             if action == 'get-evi-map':
@@ -191,8 +197,6 @@ def api(request):
             
             #============= Forest Monitoring ==========*/
             elif action == 'get-forest-gain-map':
-                tree_canopy_definition = 10
-                tree_height_definition = 5 
                 data = core.getForestGainMap(False, studyLow, studyHigh, tree_canopy_definition, tree_height_definition)
 
                 if data:
@@ -201,8 +205,6 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-forest-loss-map':
-                tree_canopy_definition = 10
-                tree_height_definition = 5 
                 data = core.getForestLossMap(False, studyLow, studyHigh, tree_canopy_definition, tree_height_definition)
 
                 if data:
@@ -211,14 +213,60 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-forest-extent-map':
-                tree_canopy_definition = 10
-                tree_height_definition = 5 
                 data = core.getForestExtendMap(studyLow, studyHigh, tree_canopy_definition, tree_height_definition, area_type, area_id)
 
                 if data:
                     return Response(data)
                 else:
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-forest-nonforest-chart-data':
+                file_path = 'static/data/forest/fnf_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                if os.path.exists(file_path):
+                    # Read and parse the JSON data
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        return Response(data)
+                else:
+                    data = core.getForestNonForestArea(studyLow, studyHigh, tree_canopy_definition, tree_height_definition, area_type, area_id)
+                    if data:
+                        with open(file_path, 'w') as f:
+                            json.dump(data, f)
+                        return Response(data)
+                    else:
+                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-forest-gainloss-area':
+                file_path = 'static/data/forest/fgainloss_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                if os.path.exists(file_path):
+                    # Read and parse the JSON data
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        return Response(data)
+                else:
+                    data = core.getForestGainLossArea(studyLow, studyHigh, tree_canopy_definition, tree_height_definition)
+                    if data:
+                        with open(file_path, 'w') as f:
+                            json.dump(data, f)
+                        return Response(data)
+                    else:
+                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-forest-change-gainloss-chart-data':
+                file_path = 'static/data/forest/fcgainloss_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                if os.path.exists(file_path):
+                    # Read and parse the JSON data
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        return Response(data)
+                else:
+                    data = core.getForestChangeGainLoss(studyLow, studyHigh, refLow, refHigh, tree_canopy_definition, tree_height_definition)
+                    if data:
+                        with open(file_path, 'w') as f:
+                            json.dump(data, f)
+                        return Response(data)
+                    else:
+                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             #============= Forest Alert ==========*/
             elif action == 'get-glad-alert-map':

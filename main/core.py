@@ -823,9 +823,12 @@ class GEEApi():
 
         gain_image = end_image.subtract(start_image).gt(0)
         gain_image = gain_image.updateMask(gain_image).select('forest_cover').clip(self.geometry)
-        forestGainMap = self.getTileLayerUrl(gain_image.visualize(min=0, max=1, palette=['173F5F']))
-
-        return forestGainMap
+        
+        if get_image:
+            return gain_image
+        else:
+            forestGainMap = self.getTileLayerUrl(gain_image.visualize(min=0, max=1, palette=['173F5F']))
+            return forestGainMap
 
     # -------------------------------------------------------------------------
     def getForestLossMap(self,
@@ -866,9 +869,11 @@ class GEEApi():
         loss_image = end_image.subtract(start_image).lt(0)
         loss_image = loss_image.updateMask(loss_image).select('forest_cover').clip(self.geometry)
 
-        forestLossMap = self.getTileLayerUrl(loss_image.visualize(min=0, max=1, palette=['fdb827']))
-
-        return forestLossMap
+        if get_image:
+            return loss_image
+        else:
+            forestLossMap = self.getTileLayerUrl(loss_image.visualize(min=0, max=1, palette=['fdb827']))
+            return forestLossMap
 
     def forest_extend(self,
         get_image = False,
@@ -964,7 +969,6 @@ class GEEApi():
 
     # -------------------------------------------------------------------------
     def getForestExtendMap(self, studyLow, studyHigh, tree_canopy_definition, tree_height_definition, area_type, area_id):
-
         start_year = int(studyLow)
         end_year = int(studyHigh)
 
@@ -984,6 +988,149 @@ class GEEApi():
             return {
                 'reportError': e.message
             }
+
+    def getForestNonForestArea(self, studyLow, studyHigh, tree_canopy_definition, tree_height_definition, area_type, area_id):
+        start_year = int(studyLow)
+        end_year = int(studyHigh)
+        res = {}
+        for _year in range(start_year, end_year+1):
+            res[str(_year)] = self.forest_extend(get_image = False,
+                year = _year,
+                tree_canopy_definition = tree_canopy_definition,
+                tree_height_definition = tree_height_definition,
+                start_year = start_year,
+                end_year= end_year,
+                area_type= area_type, area_id=area_id)
+
+        try:
+            return res
+        except Exception as e:
+            return {
+                'reportError': e.message
+            }
+
+    # -------------------------------------------------------------------------
+    def getForestGainLossArea(self, studyLow, studyHigh, tree_canopy_definition, tree_height_definition):
+        res = {}
+        name = 'forest_cover'
+        start_year = int(studyLow)
+        end_year = int(studyHigh)
+        imageLoss = self.getForestLossMap(get_image = True,
+                                    studyLow = start_year,
+                                    studyHigh = end_year,
+                                    tree_canopy_definition = tree_canopy_definition,
+                                    tree_height_definition = tree_canopy_definition,
+                                    )
+        imageGain = self.getForestGainMap(get_image = True,
+                                    studyLow = start_year,
+                                    studyHigh = end_year,
+                                    tree_canopy_definition = tree_canopy_definition,
+                                    tree_height_definition = tree_height_definition
+                                    )
+
+        reducerLoss = imageLoss.gt(0).multiply(self.scale).multiply(self.scale).reduceRegion(
+            reducer = ee.Reducer.sum(),
+            geometry = self.geometry,
+            crs = 'EPSG:32647', # WGS Zone N 47
+            scale = self.scale,
+            maxPixels = 10**15
+        )
+        reducerGain = imageGain.gt(0).multiply(self.scale).multiply(self.scale).reduceRegion(
+            reducer = ee.Reducer.sum(),
+            geometry = self.geometry,
+            crs = 'EPSG:32647', # WGS Zone N 47
+            scale = self.scale,
+            maxPixels = 10**15
+        )
+
+        statsLoss = reducerLoss.getInfo()[name]
+        statsGain = reducerGain.getInfo()[name]
+        # in hectare
+        statsLoss = statsLoss * 0.0001
+        statsGain = statsGain * 0.0001
+
+        res['forestgain'] = float('%.2f' % statsGain)
+        res['forestloss'] = float('%.2f' % statsLoss)
+
+        return res
+    
+    # -------------------------------------------------------------------------
+    def getForestChangeGainLoss(self, studyLow, studyHigh, refLow, refHigh, tree_canopy_definition, tree_height_definition):
+        res = {}
+        name = 'forest_cover'
+        refLoss = self.getForestLossMap(get_image = True,
+                                 studyLow = refLow,
+                                 studyHigh = refHigh,
+                                 tree_canopy_definition = tree_canopy_definition,
+                                 tree_height_definition = tree_canopy_definition,
+                                 )
+        studyLoss = self.getForestLossMap(get_image = True,
+                                 studyLow = studyLow,
+                                 studyHigh = studyHigh,
+                                 tree_canopy_definition = tree_canopy_definition,
+                                 tree_height_definition = tree_canopy_definition,
+                                 )
+
+        refGain = self.getForestGainMap(get_image = True,
+                                 studyLow = refLow,
+                                 studyHigh = refHigh,
+                                 tree_canopy_definition = tree_canopy_definition,
+                                 tree_height_definition = tree_height_definition
+                                 )
+
+        studyGain = self.getForestGainMap(get_image = True,
+                                 studyLow = studyLow,
+                                 studyHigh = studyHigh,
+                                 tree_canopy_definition = tree_canopy_definition,
+                                 tree_height_definition = tree_height_definition
+                                 )
+
+        reducerRefLoss = refLoss.gt(0).multiply(ee.Image.pixelArea()).reduceRegion(
+            reducer = ee.Reducer.sum(),
+            geometry = self.geometry,
+            crs = 'EPSG:32647', # WGS Zone N 47
+            scale = self.scale,
+            maxPixels = 10**15
+        )
+        reducerStudyLoss = studyLoss.gt(0).multiply(ee.Image.pixelArea()).reduceRegion(
+            reducer = ee.Reducer.sum(),
+            geometry = self.geometry,
+            crs = 'EPSG:32647', # WGS Zone N 47
+            scale = self.scale,
+            maxPixels = 10**15
+        )
+        reducerRefGain = refGain.gt(0).multiply(ee.Image.pixelArea()).reduceRegion(
+            reducer = ee.Reducer.sum(),
+            geometry = self.geometry,
+            crs = 'EPSG:32647', # WGS Zone N 47
+            scale = self.scale,
+            maxPixels = 10**15
+        )
+        reducerStudyGain = studyGain.gt(0).multiply(ee.Image.pixelArea()).reduceRegion(
+            reducer = ee.Reducer.sum(),
+            geometry = self.geometry,
+            crs = 'EPSG:32647', # WGS Zone N 47
+            scale = self.scale,
+            maxPixels = 10**15
+        )
+
+        statsRefLoss = reducerRefLoss.getInfo()[name]
+        statsStudyLoss = reducerStudyLoss.getInfo()[name]
+        statsRefGain = reducerRefGain.getInfo()[name]
+        statsStudyGain = reducerStudyGain.getInfo()[name]
+
+        # in hectare
+        statsRefLoss = statsRefLoss * 0.0001
+        statsStydyLoss = statsStudyLoss * 0.0001
+        statsRefGain = statsRefGain * 0.0001
+        statsStudyGain = statsStudyGain * 0.0001
+
+        res['statsRefLoss'] = float('%.2f' % statsRefLoss)
+        res['statsStudyLoss'] = float('%.2f' % statsStydyLoss)
+        res['statsRefGain'] = float('%.2f' % statsRefGain)
+        res['statsStudyGain'] = float('%.2f' % statsStudyGain)
+
+        return res
 
     #================================= Fire Hotspot Monitoring =======================>
     #----------------------------------------------------------------------------------
