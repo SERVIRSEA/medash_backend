@@ -31,7 +31,16 @@ def api(request):
             'get-landcover-rice-line-data',
             'get-landcover-rubber-line-data',
             'download-landcover-rice-map',
-            'download-landcover-rubber-map'
+            'download-landcover-rubber-map',
+            'get-forest-gain-map',
+            'get-forest-loss-map',
+            'get-forest-extent-map',
+            'get-glad-alert-map',
+            'get-sar-alert-map',
+            'get-glad-alert-chart-data',
+            'get-sar-alert-chart-data',
+            'get-burned-area',
+            'get-burned-area-chart-data',
         ]
 
         if action in request_methods:
@@ -179,5 +188,108 @@ def api(request):
                         return Response(data)
                     else:
                         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
-                    
+            
+            #============= Forest Monitoring ==========*/
+            elif action == 'get-forest-gain-map':
+                tree_canopy_definition = 10
+                tree_height_definition = 5 
+                data = core.getForestGainMap(False, studyLow, studyHigh, tree_canopy_definition, tree_height_definition)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-forest-loss-map':
+                tree_canopy_definition = 10
+                tree_height_definition = 5 
+                data = core.getForestLossMap(False, studyLow, studyHigh, tree_canopy_definition, tree_height_definition)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-forest-extent-map':
+                tree_canopy_definition = 10
+                tree_height_definition = 5 
+                data = core.getForestExtendMap(studyLow, studyHigh, tree_canopy_definition, tree_height_definition, area_type, area_id)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            #============= Forest Alert ==========*/
+            elif action == 'get-glad-alert-map':
+                data = core.getGLADAlertMap(year)
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-glad-alert-chart-data':
+                file_path = 'static/data/forestalert/glad/glad_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                if os.path.exists(file_path):
+                    # Read and parse the JSON data
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        return Response(data)
+                else:
+                    data = core.getGLADAlertArea(studyLow, studyHigh, area_type, area_id)
+                    if data:
+                        with open(file_path, 'w') as f:
+                            json.dump(data, f)
+                        return Response(data)
+                    else:
+                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-sar-alert-map':
+                data = core.getSARAlertMap(year)
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+            elif action == 'get-sar-alert-chart-data':
+                file_path = 'static/data/forestalert/sar/sar_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                if os.path.exists(file_path):
+                    # Read and parse the JSON data
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        return Response(data)
+                else:
+                    data = core.getSARAlertArea(studyLow, studyHigh)
+                    if data:
+                        with open(file_path, 'w') as f:
+                            json.dump(data, f)
+                        return Response(data)
+                    else:
+                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            #============= Fire Hotspot Monitoring ==========*/
+            elif action == 'get-burned-area':
+                data = core.getBurnedMap(year, area_type)
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-burned-area-chart-data':
+                file_path = 'static/data/firehotspot/fhs_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                if os.path.exists(file_path):
+                    # Read and parse the JSON data
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        return Response(data)
+                else:
+                    data = core.getBurnedArea(studyLow, studyHigh, area_type, area_id)
+                    if data:
+                        with open(file_path, 'w') as f:
+                            json.dump(data, f)
+                        return Response(data)
+                    else:
+                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+
     return Response({'error': 'Bad request, action parameter is required or not valid.'}, status=status.HTTP_400_BAD_REQUEST)

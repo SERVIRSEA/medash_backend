@@ -289,7 +289,7 @@ class GEEApi():
     # ====================== Landcover ====================>
     # -------------------------------------------------------------------------
     def getLandCoverMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv3/"+str(year)).clip(self.geometry)
+        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
         classNames = ['evergreen', 'semi-evergreen', 'deciduous', 'mangrove', 'flooded forest','rubber', 'other plantations', 'rice', 'cropland', 'surface water', 'grassland', 'woodshrub', 'built-up area', 'village', 'other']
         palette = ['267300', '38A800', '70A800', '00A884', 'B4D79E', 'AAFF00', 'F5F57A', 'FFFFBE', 'FFD37F', '004DA8', 'D7C29E', '89CD66', 'E600A9', 'A900E6', '6f6f6f']
         lcMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=str(len(classNames)-1), palette=palette))
@@ -297,7 +297,7 @@ class GEEApi():
     
     # -------------------------------------------------------------------------
     def getDownloadLandcoverMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv3/"+str(year)).clip(self.geometry)
+        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
         try:
             dnldURL = lcImage.getDownloadURL({
                 'name': 'LC'+year,
@@ -317,7 +317,7 @@ class GEEApi():
 
     # -------------------------------------------------------------------------
     def calLandcoverArea(self, series_start, series_end, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv3/"+str(year)).clip(self.geometry)
+        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
         IC= GEEApi.LANDCOVER.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
         LANDCOVERCLASSES = [
             {'name':'evergreen' ,'number': 0, 'color': '267300'},
@@ -373,13 +373,13 @@ class GEEApi():
     # ====================== Landcover Rice ====================>
     # -------------------------------------------------------------------------
     def getLandCoverRiceMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv3/"+str(year)).eq(7).clip(self.geometry).selfMask()
+        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(7).clip(self.geometry).selfMask()
         palette = ['FFFFFF','FFFF00']
         lcRiceMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=1, palette=palette))
         return lcRiceMap
 
     def downloadLandcoverRiceMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv3/"+str(year)).eq(7).clip(self.geometry)
+        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(7).clip(self.geometry)
         try:
             dnldURL = lcImage.getDownloadURL({
                 'name': 'LCRICE'+year,
@@ -408,8 +408,8 @@ class GEEApi():
         start_year = int(start_year)
         end_year = int(end_year)
 
-        if end_year >=2021:
-            end_year = 2020
+        if end_year >=2023:
+            end_year = 2022
         else:
             end_year = end_year
 
@@ -424,13 +424,13 @@ class GEEApi():
     # ====================== Landcover Rubber ====================>
     # -------------------------------------------------------------------------
     def getLandCoverRubberMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv3/"+str(year)).eq(5).clip(self.geometry).selfMask()
+        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(5).clip(self.geometry).selfMask()
         palette = ['FFFFFF','AAFF00']
         lcRubberMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=1, palette=palette))
         return lcRubberMap
 
     def downloadLandcoverRubberMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv3/"+str(year)).eq(5).clip(self.geometry)
+        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(5).clip(self.geometry)
         try:
             dnldURL = lcImage.getDownloadURL({
                 'name': 'LCRUBBER'+year,
@@ -458,8 +458,8 @@ class GEEApi():
         start_year = int(start_year)
         end_year = int(end_year)
 
-        if end_year >=2021:
-            end_year = 2020
+        if end_year >=2023:
+            end_year = 2022
         else:
             end_year = end_year
 
@@ -471,24 +471,36 @@ class GEEApi():
         return res
 
     #=============================== Forest Alert =======================>
+    def getColorIndex(self, year):
+        if year == 2018:
+            colorIndex = 0
+        elif year == 2019:
+            colorIndex = 1
+        elif year == 2020:
+            colorIndex = 2
+        elif year == 2021:
+            colorIndex = 3
+        elif year == 2022:
+            colorIndex = 4
+        elif year == 2023:
+            colorIndex = 5
+        return colorIndex
     #---------------------------------------------------------------------
-    def getForestAlertMap(self, year):
-        if year == 2022:
-            glad =  ee.ImageCollection('projects/glad/alert/UpdResult').select(['alertDate22']) 
-            GLADIC = glad.filterBounds(self.geometry)#.filterDate(series_start, series_end)
-            image = GLADIC.sort('system:time_start', False).first().clip(self.geometry).toInt16()
-            binary_image = image.rename(['binary']).selfMask()
-        else:
-            GLADIC = ee.ImageCollection(GEEApi.GLAD_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
-            image = GLADIC.sort('system:time_start', False).first().select("alert").clip(self.geometry).toInt16()
-            binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
-        
+    def getGLADAlertMap(self, year):
+        year = int(year)
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        GLADIC = ee.ImageCollection(GEEApi.GLAD_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
+        image = GLADIC.sort('system:time_start', False).first().select("alert").clip(self.geometry).toInt16()
+        binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
+        colorIndex = self.getColorIndex(year)
         colorMap = GEEApi.COLORFORESTALERT[colorIndex]
         alertMap = self.getTileLayerUrl(binary_image.visualize(min=0, max=1, palette=colorMap))
-        return lcRiceMap
+        return alertMap
     
     #------------------------------------------------------------------------------------
     def getSARAlertMap(self, year):
+        year = int(year)
         if year == 2021:
             image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2021V4')
             image = image.select("landclass").clip(self.geometry).toInt16()
@@ -505,7 +517,7 @@ class GEEApi():
             image = SARIC.sort('system:time_start', False).first()
             image = image.select("landclass").clip(self.geometry).toInt16()
             binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
-
+        colorIndex = self.getColorIndex(year)
         colorMap = GEEApi.COLORSARALERT[colorIndex]
         sarAlertMap = self.getTileLayerUrl(binary_image.visualize(min=0, max=1, palette=colorMap))
         return sarAlertMap
@@ -562,16 +574,10 @@ class GEEApi():
             }
 
     #-------------------------------------------------------------------------
-    def calForestAlert(self, series_start, series_end, year):
-        if year == 2022:
-            glad =  ee.ImageCollection('projects/glad/alert/UpdResult').select(['alertDate22']) 
-            GLADIC = glad.filterBounds(self.geometry)
-            image = GLADIC.sort('system:time_start', False).first().clip(self.geometry).toInt16()
-            binary_image = image.rename(['binary']).selfMask()
-        else:
-            GLADIC = ee.ImageCollection(GEEApi.GLAD_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
-            image = GLADIC.sort('system:time_start', False).first().select("alert").clip(self.geometry).toInt16()
-            binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
+    def calGLADAlert(self, series_start, series_end, year, area_type, area_id): 
+        GLADIC = ee.ImageCollection(GEEApi.GLAD_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
+        image = GLADIC.sort('system:time_start', False).first().select("alert").clip(self.geometry).toInt16()
+        binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
 
         if area_type == "draw" or area_type == "upload":
             reducer = binary_image.multiply(900).reduceRegion(
@@ -605,13 +611,12 @@ class GEEApi():
         return areaHA
     
     #-------------------------------------------------------------------------------------
-    def getForestAlertArea(self, start_year, end_year):
+    def getGLADAlertArea(self, start_year, end_year, area_type, area_id):
         res = {}
-        for _year in range(start_year, end_year+1):
+        for _year in range(int(start_year), int(end_year)+1):
             series_start = str(_year) + '-01-01'
             series_end = str(_year) + '-12-31'
-            colorIndex += 1
-            res[str(_year)] = self.calForestAlert(series_start, series_end, _year)
+            res[str(_year)] = self.calGLADAlert(series_start, series_end, _year, area_type, area_id)
         return res
 
     # -------------------------------------------------------------------------
@@ -651,19 +656,343 @@ class GEEApi():
     # -------------------------------------------------------------------------
     def getSARAlertArea(self, start_year, end_year):
         res = {}
-        for _year in range(start_year, end_year+1):
+        for _year in range(int(start_year), int(end_year)+1):
             series_start = str(_year) + '-01-01'
             series_end = str(_year) + '-12-31'
-            colorIndex += 1
             res[str(_year)] = self.calSARAlert(series_start, series_end, _year)
         return res
+    
+    #================================= Forest Monitoring =============================>
+    # -------------------------------------------------------------------------
+    def tree_canopy(self, 
+        img_coll = None, 
+        get_image = False,
+        for_download = False,
+        year = None,
+        tree_canopy_definition = 10,
+        ):
+
+        if not year:
+            return {
+                'message': 'Please specify a year for which you want to perform the calculations!'
+            }
+
+        if not img_coll:
+            def _apply_tree_canopy_definition(img):
+                mask = img.select(0).gt(tree_canopy_definition)
+                return img.updateMask(mask).rename(['tcc'])
+
+            img_coll = GEEApi.TREE_CANOPY
+            img_coll = img_coll.map(_apply_tree_canopy_definition)
+
+        image = ee.Image(img_coll.filterDate('%s-01-01' % year,
+                                             '%s-12-31' % year).first())
+
+        if get_image:
+            if for_download:
+                return image.updateMask(image).clip(self.geometry)
+            else:
+                return image.clip(self.geometry)
+
+        image = image.updateMask(image).clip(self.geometry)
+
+        map_id = image.getMapId({
+            'min': str(tree_canopy_definition),
+            'max': '100',
+            'palette': 'f7fcf5,e8f6e3,d0edca,b2e0ab,8ed18c,66bd6f,3da75a,238c45,03702e,00441b'
+        })
+
+        return {
+            'eeMapId': str(map_id['mapid']),
+            'eeMapURL': str(map_id['tile_fetcher'].url_format)
+        }
+
+    # -------------------------------------------------------------------------
+    def tree_height(self, 
+        img_coll = None,
+        get_image = False,
+        for_download = False,
+        year = None,
+        tree_height_definition = 5,
+        ):
+
+        if not year:
+            return {
+                'message': 'Please specify a year for which you want to perform the calculations!'
+            }
+
+        if not img_coll:
+            def _apply_tree_height_definition(img):
+                mask = img.select(0).gt(tree_height_definition)
+                return img.updateMask(mask)
+
+            img_coll = GEEApi.TREE_HEIGHT
+            img_coll = img_coll.map(_apply_tree_height_definition)
+
+        image = ee.Image(img_coll.filterDate('%s-01-01' % year,
+                                             '%s-12-31' % year).mean())
+
+        if get_image:
+            if for_download:
+                return image.updateMask(image).clip(self.geometry)
+            else:
+                return image.clip(self.geometry)
+
+        image = image.updateMask(image).clip(self.geometry)
+
+        map_id = image.getMapId({
+            'min': str(tree_height_definition),
+            'max': '36', #'{}'.format(int(math.ceil(max.getInfo()[max.getInfo().keys()[0]]))),
+            #'palette': 'f7fcf5,e8f6e3,d0edca,b2e0ab,8ed18c,66bd6f,3da75a,238c45,03702e,00441b'
+            'palette': '410f74,5e177f,7b2282,982c80,b63679,d3426e,eb5761,f8765c,fe9969,febb80,fedc9d,fcfdbf'
+        })
+
+        return {
+            'eeMapId': str(map_id['mapid']),
+            'eeMapURL': str(map_id['tile_fetcher'].url_format)
+        }
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def _get_combined_img_coll(end_year):
+        years = ee.List.sequence(2000, end_year)
+        date_ymd = ee.Date.fromYMD
+
+        def addBands(_year):
+            tcc = GEEApi.TREE_CANOPY.filterDate(date_ymd(_year, 1, 1),
+                                                       date_ymd(_year, 12, 31)).first()
+            
+            tcc = ee.Image(tcc).rename(['tcc'])
+            tch = GEEApi.TREE_HEIGHT.filterDate(date_ymd(_year, 1, 1),
+                                                       date_ymd(_year, 12, 31)).first()
+
+            tch = ee.Image(tch).rename(['tch'])
+
+            return ee.Image(tcc).addBands(tch)
+
+        ic = ee.ImageCollection.fromImages(years.map(addBands))
+        return ic
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def _filter_for_forest_definition(img_coll,
+                                      tree_canopy_definition,
+                                      tree_height_definition):
+
+        # 0 - tcc
+        # 1 - tch
+        return img_coll.map(lambda img: img.select('tcc').gt(tree_canopy_definition).\
+                            And(img.select('tch').gt(tree_height_definition))
+                            .rename(['forest_cover']).copyProperties(img, img.propertyNames()))
+
+    # -------------------------------------------------------------------------
+    def getForestGainMap(self,
+        get_image = False,
+        studyLow = None,
+        studyHigh = None,
+        tree_canopy_definition = 10,
+        tree_height_definition = 5,
+        download = 'False'):
+
+        start_year = int(studyLow)
+        end_year = int(studyHigh)
+        
+        if not start_year and end_year:
+            return {
+                'message': 'Please specify a start and end year for which you want to perform the calculations!'
+            }
+
+        combined_img_coll = GEEApi._get_combined_img_coll(end_year)
+
+        filtered_img_coll = GEEApi._filter_for_forest_definition(\
+                                                        combined_img_coll,
+                                                        tree_canopy_definition,
+                                                        tree_height_definition)
+
+        start_image = self.tree_canopy(img_coll = filtered_img_coll,
+                                       get_image = True,
+                                       year = start_year,
+                                       tree_canopy_definition = tree_canopy_definition,
+                                       )
+
+        end_image = self.tree_canopy(img_coll = filtered_img_coll,
+                                     get_image = True,
+                                     year = end_year,
+                                     tree_canopy_definition = tree_canopy_definition,
+                                     )
+
+        gain_image = end_image.subtract(start_image).gt(0)
+        gain_image = gain_image.updateMask(gain_image).select('forest_cover').clip(self.geometry)
+        forestGainMap = self.getTileLayerUrl(gain_image.visualize(min=0, max=1, palette=['173F5F']))
+
+        return forestGainMap
+
+    # -------------------------------------------------------------------------
+    def getForestLossMap(self,
+        get_image = False,
+        studyLow = None,
+        studyHigh = None,
+        tree_canopy_definition = 10,
+        tree_height_definition = 5,
+        download = 'False'):
+
+        start_year = int(studyLow)
+        end_year = int(studyHigh)
+        
+        if not start_year and end_year:
+            return {
+                'message': 'Please specify a start and end year for which you want to perform the calculations!'
+            }
+
+        combined_img_coll = GEEApi._get_combined_img_coll(end_year)
+
+        filtered_img_coll = GEEApi._filter_for_forest_definition(\
+                                                        combined_img_coll,
+                                                        tree_canopy_definition,
+                                                        tree_height_definition)
+
+        start_image = self.tree_canopy(img_coll = filtered_img_coll,
+                                       get_image = True,
+                                       year = start_year,
+                                       tree_canopy_definition = tree_canopy_definition,
+                                       )
+
+        end_image = self.tree_canopy(img_coll = filtered_img_coll,
+                                     get_image = True,
+                                     year = end_year,
+                                     tree_canopy_definition = tree_canopy_definition,
+                                     )
+
+        loss_image = end_image.subtract(start_image).lt(0)
+        loss_image = loss_image.updateMask(loss_image).select('forest_cover').clip(self.geometry)
+
+        forestLossMap = self.getTileLayerUrl(loss_image.visualize(min=0, max=1, palette=['fdb827']))
+
+        return forestLossMap
+
+    def forest_extend(self,
+        get_image = False,
+        year = None,
+        tree_canopy_definition = 10,
+        tree_height_definition = 5,
+        start_year = 2000,
+        end_year=None,
+        area_type='',
+        area_id=''):
+
+        if not year:
+            return {
+                'message': 'Please specify a year for which you want to perform the calculations!'
+            }
+
+        combined_img_coll = GEEApi._get_combined_img_coll(end_year)
+
+        filtered_img_coll = GEEApi._filter_for_forest_definition(\
+                                                        combined_img_coll,
+                                                        tree_canopy_definition,
+                                                        tree_height_definition)
+
+        image = self.tree_canopy(img_coll = filtered_img_coll,
+                                 get_image = True,
+                                 year = year,
+                                 tree_canopy_definition = tree_canopy_definition,
+                                 )
+
+        image = image.updateMask(image).clip(self.geometry)
+
+        # map_id = image.getMapId({
+        #     'min': str(tree_canopy_definition),
+        #     'max': '100',
+        #     'palette': GEEApi.COLOR[year - start_year]
+        # })
+
+        if area_type == "country":
+            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/cam_Metadata"
+            forestArea_fc = ee.FeatureCollection(ic)
+            forestArea = forestArea_fc.filter(ee.Filter.eq('NAME_ENGLI', area_id)).filter(ee.Filter.eq('year', year))
+            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+
+        elif area_type == "province":
+            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/province_"+ str(year) +"Metadata"
+            forestArea_fc = ee.FeatureCollection(ic)
+            forestArea = forestArea_fc.filter(ee.Filter.eq('gid', area_id))
+            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+
+        elif area_type == "district":
+            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/district_"+ str(year) +"Metadata"
+            forestArea_fc = ee.FeatureCollection(ic)
+            forestArea = forestArea_fc.filter(ee.Filter.eq('DIST_CODE', area_id))
+            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+
+        elif area_type == "protected_area":
+            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/protected_"+ str(year) +"Metadata"
+            forestArea_fc = ee.FeatureCollection(ic)
+            forestArea = forestArea_fc.filter(ee.Filter.eq('map_id', area_id))
+            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+
+        elif area_type == "draw" or area_type == "upload":
+            reducer = image.gt(0).multiply(self.scale).multiply(self.scale).reduceRegion(
+                reducer = ee.Reducer.sum(),
+                geometry = self.geometry,
+                crs = 'EPSG:32647', # WGS Zone N 47
+                scale = self.scale,
+                maxPixels = 10**15
+            )
+            stats = reducer.getInfo()["forest_cover"]
+            # in hectare
+            areaHA = stats * 0.0001
+
+        if get_image:
+            data = self.getTileLayerUrl(
+                image.visualize(
+                    min=str(tree_canopy_definition), 
+                    max='100', 
+                    palette=[GEEApi.COLOR[year - start_year]]))
+            return data
+        else:
+            return {
+                'forest': float('%.2f' % areaHA),
+                'noneForest': float('%.2f' % (self.geometryArea - areaHA)),
+            }
+        # return {
+        #     'forest': float('%.2f' % areaHA),
+        #     'noneForest': float('%.2f' % (self.geometryArea - areaHA)),
+        #     'eeMapId': str(map_id['mapid']),
+        #     'eeMapURL': str(map_id['tile_fetcher'].url_format),
+        #     'color': GEEApi.COLOR[year - start_year]
+        # }
+
+    # -------------------------------------------------------------------------
+    def getForestExtendMap(self, studyLow, studyHigh, tree_canopy_definition, tree_height_definition, area_type, area_id):
+
+        start_year = int(studyLow)
+        end_year = int(studyHigh)
+
+        res = {}
+        for _year in range(start_year, end_year+1):
+            res[str(_year)] = self.forest_extend(get_image = True,
+                                       year = _year,
+                                       tree_canopy_definition = tree_canopy_definition,
+                                       tree_height_definition = tree_height_definition,
+                                       start_year = start_year,
+                                       end_year= end_year,
+                                       area_type= area_type, area_id=area_id)
+
+        try:
+            return res
+        except Exception as e:
+            return {
+                'reportError': e.message
+            }
 
     #================================= Fire Hotspot Monitoring =======================>
     #----------------------------------------------------------------------------------
-    def getBurnedMap(self, year):
+    def getBurnedMap(self, year, area_type):
         #burned Area Feature collection
         ic = "projects/servir-mekong/Cambodia-Dashboard-tool/BurnArea/"+ area_type +"_"+ str(year) +"Metadata"
         burnedArea_fc = ee.FeatureCollection(ic)
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
 
         IC= GEEApi.FIRMS_BURNED_AREA.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
         proj = ee.Projection('EPSG:4326')
@@ -714,7 +1043,7 @@ class GEEApi():
             }
 
     # -------------------------------------------------------------------------
-    def calFirmBurnedArea(self, series_start, series_end, year):
+    def calFirmBurnedArea(self, series_start, series_end, year, area_type, area_id):
         ic = "projects/servir-mekong/Cambodia-Dashboard-tool/BurnArea/"+ area_type +"_"+ str(year) +"Metadata"
         burnedArea_fc = ee.FeatureCollection(ic)
 
@@ -772,12 +1101,12 @@ class GEEApi():
             'total_area': float('%.2f' % areaHA)
         }
     # -------------------------------------------------------------------------
-    def getBurnedArea(self, start_year, end_year):
+    def getBurnedArea(self, start_year, end_year, area_type, area_id):
         res = {}
-        for _year in range(start_year, end_year+1):
+        for _year in range(int(start_year), int(end_year)+1):
             series_start = str(_year) + '-01-01'
             series_end = str(_year) + '-12-31'
-            res[str(_year)] = self.calFirmBurnedArea(series_start, series_end, _year)
+            res[str(_year)] = self.calFirmBurnedArea(series_start, series_end, _year, area_type, area_id)
         return res
 
 
