@@ -17,12 +17,18 @@ class GEEApi():
     FIRMS_BURNED_AREA = ee.ImageCollection(settings.FIRMS_BURNED_AREA)
     LANDCOVER = ee.ImageCollection(settings.LANDCOVER)
     SAR_ALERT = settings.SAR_ALERT
+    NDVI = settings.NDVI
+    VHI = settings.VHI
+    CWSI = settings.CWSI
 
     COLOR = ['A8D9C6','B0DAB2','BFE1C9','AAD7A0','C3DE98','D5E59E','93D2BF','95CF9C','A4D7B8','9BD291','B1D78A','C9E08E','5CC199','77C78C','37B54A','126039','146232','0F8040','279445','449644','59A044','0E361E','236832','335024', '36461F']
     COLORFORESTALERT = ['943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1','943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1']
     COLORSARALERT = ['fba004', 'f9bc16', 'ac9d0a', 'fba004', 'f9bc16', 'ac9d0a','fba004', 'f9bc16', 'ac9d0a','fba004', 'f9bc16', 'ac9d0a']
 
     geometry = ee.FeatureCollection(CAMBODIA_COUNTRY_BOUNDARY).geometry()
+
+    SLD_NDVI = 'E85B3A,F99E59,FEC981,FFEDAB,F7FCDF,C4E687,97D265,58B453,1A9641'
+    
 
     def __init__(self, area_type, area_id): # area_path, area_name, geom, 
 
@@ -1159,18 +1165,18 @@ class GEEApi():
 
     # -------------------------------------------------------------------------
     def dowmloadFirmBurnedArea(self, year):
-        #burned Area Feature collection
+        # burned Area Feature collection
         series_start = str(year) + '-01-01'
         series_end = str(year) + '-12-31'
         IC= GEEApi.FIRMS_BURNED_AREA.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
         proj = ee.Projection('EPSG:4326')
         fire = IC.select('T21').max().toInt16().clip(self.geometry)
 
-        #confidance more then 90%
+        # confidance more then 90%
         maskconf = IC.select('confidence').mean().gt(90).toInt16()
         fire = fire.updateMask(maskconf)
         fire = fire.reproject(crs=proj,scale=1000)
-        #binary image
+        # binary image
         image = fire.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
         image = image.reproject(crs=proj,scale=1000)
 
@@ -1256,8 +1262,29 @@ class GEEApi():
             res[str(_year)] = self.calFirmBurnedArea(series_start, series_end, _year, area_type, area_id)
         return res
 
-
-
-
+    # ========= Drought section =======>
+    def getVisualizationParams(self, index):
+        params_dict = {
+            'NDVI': {'band': 'NDVI', 'min': -10000, 'max': 10000, 'palette': [self.SLD_NDVI]},
+        }
         
+        # Return the visualization parameters for the specified index
+        return params_dict.get(index, {})
 
+    def getDroughtIndexMap(self, date, index):
+        date = ee.Date(date)
+        filter = ee.Filter.date(date, date.advance(1, 'day'))
+        image_collection_path = self.index.upper()
+        image = (
+            ee.ImageCollection(image_collection_path)
+            .filterBounds(self.geometry)
+            .sort('system:time_start', False)
+            .filter(filter)
+            .first()
+        )
+        vis_params = self.getVisualizationParams(index)
+        band_name = vis_params.get('band')
+        if band_name:
+            image = image.select(band_name)
+        indexMap = self.getTileLayerUrl(image.visualize(**vis_params))
+        return indexMap
