@@ -17,9 +17,16 @@ class GEEApi():
     FIRMS_BURNED_AREA = ee.ImageCollection(settings.FIRMS_BURNED_AREA)
     LANDCOVER = ee.ImageCollection(settings.LANDCOVER)
     SAR_ALERT = settings.SAR_ALERT
+    
     NDVI = settings.NDVI
     VHI = settings.VHI
     CWSI = settings.CWSI
+    CDI = settings.CDI
+    SPI3 = settings.SPI3
+    SOIL_MOIST = settings.SOIL_MOIST
+    RAINFALL = settings.RAINFALL
+    SURF_TEMP = settings.SURF_TEMP
+    REL_HUMID = settings.REL_HUMID
 
     COLOR = ['A8D9C6','B0DAB2','BFE1C9','AAD7A0','C3DE98','D5E59E','93D2BF','95CF9C','A4D7B8','9BD291','B1D78A','C9E08E','5CC199','77C78C','37B54A','126039','146232','0F8040','279445','449644','59A044','0E361E','236832','335024', '36461F']
     COLORFORESTALERT = ['943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1','943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1']
@@ -27,8 +34,98 @@ class GEEApi():
 
     geometry = ee.FeatureCollection(CAMBODIA_COUNTRY_BOUNDARY).geometry()
 
-    SLD_NDVI = 'E85B3A,F99E59,FEC981,FFEDAB,F7FCDF,C4E687,97D265,58B453,1A9641'
+    SLD_NDVI = ['E85B3A', 'F99E59', 'FEC981', 'FFEDAB', 'F7FCDF', 'C4E687', '97D265', '58B453', '1A9641']
+    SLD_CWSI = ['1A9641','58B453','97D265','C4E687','F7FCDF','FFEDAB','FEC981','F99E59','E85B3A']
+    SLD_VHI = ['1A9641','58B453','97D265','C4E687','F7FCDF','FFEDAB','FEC981','F99E59','E85B3A']
     
+    # Custom Raster style (SLD)
+    SLD_CDI ="""
+        <RasterSymbolizer>
+            <ColorMap type="intervals" extended="false">
+                <ColorMapEntry color="#88A541" quantity="0" label="Normal" />
+                <ColorMapEntry color="#F89F1D" quantity="1" label="Watch" />
+                <ColorMapEntry color="#B97A57" quantity="2" label="Warning" />
+                <ColorMapEntry color="#880015" quantity="3" label="Alert" />
+            </ColorMap>
+        </RasterSymbolizer>
+    """
+
+    SLD_SPI3 = """
+        <RasterSymbolizer>
+            <ColorMap type="intervals" extended="false" >
+                <ColorMapEntry color="#880015" quantity="-2.0" label="EXD (less than  -2.0)" />
+                <ColorMapEntry color="#B97A57" quantity="-1.50" label="SED (-1.5 - -1.99)" />
+                <ColorMapEntry color="#F89F1D" quantity="-1.0" label="MOD (-1.0 - -1.49)" />
+                <ColorMapEntry color="#FFFFFF" quantity="10" label="Normal or Wet (gt -0.99)" />
+            </ColorMap>
+        </RasterSymbolizer>
+    """
+
+    SLD_SOIL_MOIST = """
+        <RasterSymbolizer>
+            <ColorMap type="intervals" extended="false" >
+                <ColorMapEntry color="#880015" quantity="5" label="EXD (0 - 5)"/>
+                <ColorMapEntry color="#B97A57" quantity="10" label="SED (6 - 10)" />
+                <ColorMapEntry color="#F89F1D" quantity="20" label="MOD (11 - 20)" />
+                <ColorMapEntry color="#FFFFFF" quantity="10000" label="Normal or Wet (gt 21)" />
+            </ColorMap>
+        </RasterSymbolizer>
+    """
+
+    SLD_SURF_TEMP = """
+        <RasterSymbolizer>
+            <ColorMap type="intervals" extended="false" >
+                <ColorMapEntry color="#0370AF" quantity="15" label="0 - 10"/>
+                <ColorMapEntry color="#348DBF" quantity="20" label="10 - 13" />
+                <ColorMapEntry color="#75B4D4" quantity="21" label="13 - 16" />
+                <ColorMapEntry color="#A5CEE2" quantity="22" label="16 - 19" />
+                <ColorMapEntry color="#CDE2EC" quantity="23" label="19 - 22"/>
+                <ColorMapEntry color="#F6F6F6" quantity="24" label="22 - 25" />
+                <ColorMapEntry color="#F4D5C7" quantity="26" label="25 - 28" />
+                <ColorMapEntry color="#F4B599" quantity="28" label="28 - 31" />
+                <ColorMapEntry color="#EB846E" quantity="29" label="31 - 34"/>
+                <ColorMapEntry color="#DA4247" quantity="30" label="34 - 36" />
+                <ColorMapEntry color="#CA0020" quantity="100" label="36 +" />
+            </ColorMap>
+        </RasterSymbolizer>
+    """
+
+    SLD_RAINFALL = """
+        <RasterSymbolizer>
+            <ColorMap type="intervals" extended="false" >
+                <ColorMapEntry color="#FFFFFF" quantity="1" label="0 - 1"/>
+                <ColorMapEntry color="#E5B42C" quantity="2" label="1 - 2" />
+                <ColorMapEntry color="#E3B022" quantity="3" label="2 - 3" />
+                <ColorMapEntry color="#F2B464" quantity="4" label="3 - 4" />
+                <ColorMapEntry color="#F2B464" quantity="5" label="4 - 5"/>
+                <ColorMapEntry color="#F3E976" quantity="10" label="5 - 10" />
+                <ColorMapEntry color="#91CE7E" quantity="20" label="10 - 20" />
+                <ColorMapEntry color="#89CE74" quantity="30" label="20 - 30" />
+                <ColorMapEntry color="#43BE87" quantity="40" label="30 - 40"/>
+                <ColorMapEntry color="#34B485" quantity="50" label="40 - 50" />
+                <ColorMapEntry color="#30B282" quantity="60" label="50 - 60" />
+                <ColorMapEntry color="#069B42" quantity="70" label="60 - 70"/>
+                <ColorMapEntry color="#069B42" quantity="100" label="70 +" />
+            </ColorMap>
+        </RasterSymbolizer>
+    """
+
+    SLD_REL_HUMID = """
+        <RasterSymbolizer>
+            <ColorMap type="intervals" extended="false" >
+                <ColorMapEntry color="#7C3595" quantity="10" label="Less than 10"/>
+                <ColorMapEntry color="#9B65AE" quantity="20" label="10 - 20" />
+                <ColorMapEntry color="#BA98C9" quantity="30" label="20 - 30" />
+                <ColorMapEntry color="#D4C1DD" quantity="40" label="30 - 40" />
+                <ColorMapEntry color="#ECE5EF" quantity="50" label="40 - 50"/>
+                <ColorMapEntry color="#E5F1E4" quantity="60" label="50 - 60" />
+                <ColorMapEntry color="#C1E5BD" quantity="70" label="60 - 70" />
+                <ColorMapEntry color="#95D295" quantity="80" label="70 - 80" />
+                <ColorMapEntry color="#4AAD66" quantity="90" label="80 - 90"/>
+                <ColorMapEntry color="#008837" quantity="100" label="90 +" />
+            </ColorMap>
+        </RasterSymbolizer>
+    """
 
     def __init__(self, area_type, area_id): # area_path, area_name, geom, 
 
@@ -1265,26 +1362,52 @@ class GEEApi():
     # ========= Drought section =======>
     def getVisualizationParams(self, index):
         params_dict = {
-            'NDVI': {'band': 'NDVI', 'min': -10000, 'max': 10000, 'palette': [self.SLD_NDVI]},
+            'ndvi': {'min': -10000, 'max': 10000, 'palette': GEEApi.SLD_NDVI, 'sld': False, 'band': 'NDVI'},
+            'vhi': {'min': 0, 'max': 10000, 'palette': GEEApi.SLD_VHI, 'sld': False, 'band': 'VHI'},
+            'cwsi': {'min': 0, 'max': 1, 'palette': GEEApi.SLD_CWSI, 'sld': False, 'band': 'CWSI'},
+            'cdi': {'min': 0, 'max': 10, 'palette': GEEApi.SLD_CDI, 'sld': True, 'band': 'cdi'},
+            'spi3': {'min': -10, 'max': 10, 'palette': GEEApi.SLD_SPI3, 'sld': True, 'band': 'b1'},
+            'soil_moist': {'min': 0, 'max': 100, 'palette': GEEApi.SLD_SOIL_MOIST, 'sld': True, 'band': 'b1'},
+            'rainfall': {'min': 0, 'max': 100, 'palette': GEEApi.SLD_RAINFALL, 'sld': True, 'band': 'b1'},
+            'surf_temp': {'min': 0, 'max': 100, 'palette': GEEApi.SLD_SURF_TEMP, 'sld': True, 'band': 'b1'},
+            'rel_humid': {'min': 0, 'max': 100, 'palette': GEEApi.SLD_REL_HUMID, 'sld': True, 'band': 'b1'}
         }
-        
-        # Return the visualization parameters for the specified index
-        return params_dict.get(index, {})
+        return params_dict.get(index.lower(), {})
 
-    def getDroughtIndexMap(self, date, index):
-        date = ee.Date(date)
-        filter = ee.Filter.date(date, date.advance(1, 'day'))
-        image_collection_path = self.index.upper()
-        image = (
+    def getDroughtIndexMap(self, index, date):
+        image_collection_path = getattr(GEEApi, index.upper())
+        
+        image_collection = (
             ee.ImageCollection(image_collection_path)
             .filterBounds(self.geometry)
-            .sort('system:time_start', False)
-            .filter(filter)
-            .first()
+            # .sort('system:time_start', False)
         )
+
+        if index == 'vhi':
+            date_obj = datetime.strptime(date, '%Y-%m-%d')
+            # Format the datetime object to 'YYYY_MM_dd'
+            formatted_date = date_obj.strftime('%Y_%m_%d')
+            vhi_filter = ee.Filter.eq('system:index', f'vhi_{formatted_date}')
+            image_collection = image_collection.filter(vhi_filter)
+        else:
+            date = ee.Date(date)
+            filter = ee.Filter.date(date, date.advance(1, 'day'))
+            image_collection = image_collection.filter(filter)
+
+        image = image_collection.first().clip(self.geometry)
         vis_params = self.getVisualizationParams(index)
-        band_name = vis_params.get('band')
-        if band_name:
-            image = image.select(band_name)
-        indexMap = self.getTileLayerUrl(image.visualize(**vis_params))
+        band_name = vis_params.get('band', 'NDVI')
+        sld =  vis_params.get('sld')
+        image = image.select(band_name)
+        image = image.selfMask()
+        imgScale = image.projection().nominalScale()
+        image = image.reproject(crs='EPSG:4326', scale=imgScale)
+
+        if sld == True:
+            style = vis_params['palette']
+            map_id = image.sldStyle(style).getMapId()
+            indexMap = str(map_id['tile_fetcher'].url_format)
+        else:
+            indexMap = self.getTileLayerUrl(image.visualize(min=vis_params['min'], max=vis_params['max'], palette=vis_params['palette']))
+        
         return indexMap

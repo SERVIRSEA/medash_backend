@@ -44,6 +44,7 @@ def api(request):
             'get-sar-alert-chart-data',
             'get-burned-area',
             'get-burned-area-chart-data',
+            'get-drought-index-map'
         ]
 
         if action in request_methods:
@@ -54,6 +55,8 @@ def api(request):
             studyLow = request.query_params.get('studyLow', '')
             studyHigh = request.query_params.get('studyHigh', '')
             year = request.query_params.get('year', '') 
+            index = request.query_params.get('index', '')
+            date = request.query_params.get('date', '')
 
             core = GEEApi(area_type, area_id)
 
@@ -339,5 +342,12 @@ def api(request):
                     else:
                         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
 
-
+            #=============== Drought Monitoring ========================>
+            elif action == 'get-drought-index-map':
+                data = core.getDroughtIndexMap(index, date)
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
     return Response({'error': 'Bad request, action parameter is required or not valid.'}, status=status.HTTP_400_BAD_REQUEST)
