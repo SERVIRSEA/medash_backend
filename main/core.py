@@ -750,7 +750,8 @@ class GEEApi():
             maxPixels= 1E20
         )
         #area in squre meter
-        stats = reducer.getInfo()['binary']
+        # stats = reducer.getInfo()['binary']
+        stats = reducer.getInfo()['binary'] if reducer.getInfo().get('binary') is not None else 0
         #convert to hactare divide by 10000
         areaHA = stats / 10000
 
@@ -930,7 +931,7 @@ class GEEApi():
         if get_image:
             return gain_image
         else:
-            forestGainMap = self.getTileLayerUrl(gain_image.visualize(min=0, max=1, palette=['173F5F']))
+            forestGainMap = self.getTileLayerUrl(gain_image.visualize(min=0, max=100, palette=['173F5F']))
             return forestGainMap
 
     # -------------------------------------------------------------------------
@@ -1023,19 +1024,19 @@ class GEEApi():
         elif area_type == "province":
             ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/province_"+ str(year) +"Metadata"
             forestArea_fc = ee.FeatureCollection(ic)
-            forestArea = forestArea_fc.filter(ee.Filter.eq('gid', area_id))
+            forestArea = forestArea_fc.filter(ee.Filter.eq('gid', int(area_id)))
             areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
 
         elif area_type == "district":
             ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/district_"+ str(year) +"Metadata"
             forestArea_fc = ee.FeatureCollection(ic)
-            forestArea = forestArea_fc.filter(ee.Filter.eq('DIST_CODE', area_id))
+            forestArea = forestArea_fc.filter(ee.Filter.eq('DIST_CODE', str(area_id)))
             areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
 
         elif area_type == "protected_area":
             ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/protected_"+ str(year) +"Metadata"
             forestArea_fc = ee.FeatureCollection(ic)
-            forestArea = forestArea_fc.filter(ee.Filter.eq('map_id', area_id))
+            forestArea = forestArea_fc.filter(ee.Filter.eq('map_id', str(area_id)))
             areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
 
         elif area_type == "draw" or area_type == "upload":
@@ -1049,7 +1050,7 @@ class GEEApi():
             stats = reducer.getInfo()["forest_cover"]
             # in hectare
             areaHA = stats * 0.0001
-
+        
         if get_image:
             data = self.getTileLayerUrl(
                 image.visualize(
@@ -1058,6 +1059,7 @@ class GEEApi():
                     palette=[GEEApi.COLOR[year - start_year]]))
             return data
         else:
+            
             return {
                 'forest': float('%.2f' % areaHA),
                 'noneForest': float('%.2f' % (self.geometryArea - areaHA)),
@@ -1294,8 +1296,8 @@ class GEEApi():
 
     # -------------------------------------------------------------------------
     def calFirmBurnedArea(self, series_start, series_end, year, area_type, area_id):
-        ic = "projects/servir-mekong/Cambodia-Dashboard-tool/BurnArea/"+ area_type +"_"+ str(year) +"Metadata"
-        burnedArea_fc = ee.FeatureCollection(ic)
+        # ic = "projects/servir-mekong/Cambodia-Dashboard-tool/BurnArea/"+ area_type +"_"+ str(year) +"Metadata"
+        # burnedArea_fc = ee.FeatureCollection(ic)
 
         IC= GEEApi.FIRMS_BURNED_AREA.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
         proj = ee.Projection('EPSG:4326')
@@ -1335,16 +1337,38 @@ class GEEApi():
                 burnedArea_fc = ee.FeatureCollection(ic)
                 burnedArea = burnedArea_fc.filter(ee.Filter.eq('NAME_ENGLI', area_id)).filter(ee.Filter.eq('year', year))
             elif area_type == "province":
-                burnedArea = burnedArea_fc.filter(ee.Filter.eq('gid', area_id))
+                ic = "projects/servir-mekong/Cambodia-Dashboard-tool/BurnArea/province_"+ str(year) +"Metadata"
+                burnedArea_fc = ee.FeatureCollection(ic)
+                # print(area_id)
+                burnedArea = burnedArea_fc.filter(ee.Filter.eq('gid', int(area_id)))
+                # print(burnedArea)
             elif area_type == "district":
-                burnedArea = burnedArea_fc.filter(ee.Filter.eq('DIST_CODE', area_id))
+                ic = "projects/servir-mekong/Cambodia-Dashboard-tool/BurnArea/district_"+ str(year) +"Metadata"
+                burnedArea_fc = ee.FeatureCollection(ic)
+                burnedArea = burnedArea_fc.filter(ee.Filter.eq('DIST_CODE', str(area_id)))
             elif area_type == "protected_area":
                 ic = "projects/servir-mekong/Cambodia-Dashboard-tool/BurnArea/protected_"+ str(year) +"Metadata"
                 burnedArea_fc = ee.FeatureCollection(ic)
-                burnedArea = burnedArea_fc.filter(ee.Filter.eq('map_id', area_id))
+                burnedArea = burnedArea_fc.filter(ee.Filter.eq('map_id', str(area_id)))
+            
+            # Get the list of areaHect values
+            areaHA_list = burnedArea.aggregate_array("areaHect").getInfo()
+            # print(areaHA_list)
+            # Check if the list is not empty before accessing elements
+            if areaHA_list:
+                areaHA = areaHA_list[0]
+            else:
+                # Handle the case where the list is empty
+                areaHA = 0  # Or any default value
 
-            areaHA = burnedArea.aggregate_array("areaHect").get(0).getInfo()
-            number_fire = burnedArea.aggregate_array("numberFire").get(0).getInfo()
+            # Similarly, handle numberFire
+            number_fire_list = burnedArea.aggregate_array("numberFire").getInfo()
+            if number_fire_list:
+                number_fire = number_fire_list[0]
+            else:
+                number_fire = 0  # Or any default value
+            # areaHA = burnedArea.aggregate_array("areaHect").get(0).getInfo()
+            # number_fire = burnedArea.aggregate_array("numberFire").get(0).getInfo()
         
         return {
             'number_fire': int(number_fire),

@@ -201,7 +201,6 @@ def api(request):
             #============= Forest Monitoring ==========*/
             elif action == 'get-forest-gain-map':
                 data = core.getForestGainMap(False, studyLow, studyHigh, tree_canopy_definition, tree_height_definition)
-
                 if data:
                     return Response(data)
                 else:
