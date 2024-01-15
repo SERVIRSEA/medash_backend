@@ -44,7 +44,8 @@ def api(request):
             'get-sar-alert-chart-data',
             'get-burned-area',
             'get-burned-area-chart-data',
-            'get-drought-index-map'
+            'get-drought-index-map',
+            'get-landcover-baselinemeasure-area',
         ]
 
         if action in request_methods:
@@ -57,6 +58,7 @@ def api(request):
             year = request.query_params.get('year', '') 
             index = request.query_params.get('index', '')
             date = request.query_params.get('date', '')
+            land_cover_type =  request.query_params.get('type', '')
 
             core = GEEApi(area_type, area_id)
 
@@ -191,6 +193,22 @@ def api(request):
                         return Response(data)
                 else:
                     data = core.getLandcoverRubberArea(studyLow, studyHigh)
+                    if data:
+                        with open(file_path, 'w') as f:
+                            json.dump(data, f)
+                        return Response(data)
+                    else:
+                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-landcover-baselinemeasure-area':
+                file_path = f"static/data/lulc/{land_cover_type}_bmarea_{area_type}_{area_id}_{refLow}_{refHigh}_{studyLow}_{studyHigh}.json"
+                if os.path.exists(file_path):
+                    # Read and parse the JSON data
+                    with open(file_path, 'r') as file:
+                        data = json.load(file)
+                        return Response(data)
+                else:
+                    data = core.getLCBaselineMeasureArea(refLow, refHigh, studyLow, studyHigh, land_cover_type)
                     if data:
                         with open(file_path, 'w') as f:
                             json.dump(data, f)

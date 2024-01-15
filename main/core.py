@@ -572,7 +572,72 @@ class GEEApi():
             res[str(year)] = self.calRubberTimeSeries(series_start, series_end, year)
         # print(res)
         return res
+    
+    def getLCBaselineMeasureArea(self, refLow, refHigh, studyLow, studyHigh, land_cover_type):
+    
+        def filter_and_merge(years, lcType):
+            image_list = []
+            for year in years:
+                image = self.filter_landcover(year=year, lcType=lcType)
+                image_list.append(image)
+            return ee.ImageCollection(image_list).max()
 
+        baseline_years = list(range(int(refLow), int(refHigh) + 1))
+        measure_years = list(range(int(studyLow), int(studyHigh) + 1))
+
+        baselineImage = filter_and_merge(baseline_years, land_cover_type)
+        measureImage = filter_and_merge(measure_years, land_cover_type)
+
+        baseline_area_stats = baselineImage.multiply(ee.Image.pixelArea()).reduceRegion(
+            reducer=ee.Reducer.sum(),
+            geometry=self.geometry,
+            crs='EPSG:4326',
+            scale=100,
+            maxPixels=1E20
+        )
+
+        measure_area_stats = measureImage.multiply(ee.Image.pixelArea()).reduceRegion(
+            reducer=ee.Reducer.sum(),
+            geometry=self.geometry,
+            crs='EPSG:4326',
+            scale=100,
+            maxPixels=1E20
+        )
+
+        baseline_area_Ha = baseline_area_stats.getInfo()[land_cover_type] / 10000
+        measure_area_Ha = measure_area_stats.getInfo()[land_cover_type] / 10000
+
+        return {
+            'baselineArea': float('%.2f' % baseline_area_Ha),
+            'measureArea': float('%.2f' % measure_area_Ha),
+        }
+
+    def filter_landcover(self, year, lcType):
+        band_mapping = {'rice': 7, 'rubber': 5}
+
+        band_number = band_mapping.get(lcType)
+        
+        if band_number is None:
+            raise ValueError("Invalid land cover type")
+
+        image = ee.Image("projects/cemis-camp/assets/landcover/lcv4/" + str(year)).clip(self.geometry)
+
+        band_names = image.bandNames()
+        if 'lc' in band_names.getInfo():
+            image = image.select(['lc'], [lcType])
+            selected_band_name = lcType
+        elif 'classification' in band_names.getInfo():
+            image = image.select(['classification'], [lcType])
+            selected_band_name = lcType
+        else:
+            raise ValueError("No 'lc' or 'classification' band found in the image")
+
+        selected_image = image.select([selected_band_name])
+        masked_image = selected_image.eq(ee.Number(band_number)).selfMask()
+
+        return masked_image
+
+        
     #=============================== Forest Alert =======================>
     def getColorIndex(self, year):
         if year == 2018:
