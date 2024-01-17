@@ -1,4 +1,5 @@
 import os, json
+import orjson
 from django.shortcuts import render
 from django.contrib.staticfiles import finders
 from django.views.decorators.csrf import csrf_exempt
@@ -8,6 +9,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from .core import GEEApi
+from .dbcore import DBData
 from .authentication import APIKeyAuthentication
 
 @csrf_exempt 
@@ -61,6 +63,8 @@ def api(request):
             land_cover_type =  request.query_params.get('type', '')
 
             core = GEEApi(area_type, area_id)
+            dbcore = DBData(area_type, area_id)
+
 
             tree_canopy_definition = 10
             tree_height_definition = 5 
@@ -78,33 +82,61 @@ def api(request):
                 file_path = 'static/data/evi/pie/'+area_type+"_"+area_id+"_"+refLow+"_"+refHigh+"_"+studyLow+"_"+studyHigh+".json"
                 if os.path.exists(file_path):
                     # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
+                    with open(file_path, 'rb') as file:
+                        data = orjson.loads(file.read())
                         return Response(data)
                 else:
                     data = core.calcPie(refLow, refHigh, studyLow, studyHigh)
                     if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
+                        with open(file_path, 'wb') as f:
+                            f.write(orjson.dumps(data))
                         return Response(data)
                     else:
                         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.calcPie(refLow, refHigh, studyLow, studyHigh)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-evi-line':
                 file_path = 'static/data/evi/line/'+area_type+"_"+area_id+"_"+refLow+"_"+refHigh+"_"+studyLow+"_"+studyHigh+".json"
                 if os.path.exists(file_path):
                     # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
+                    with open(file_path, 'rb') as file:
+                        data = orjson.loads(file.read())
                         return Response(data)
                 else:
                     data = core.GetPolygonTimeSeries(refLow, refHigh, studyLow, studyHigh)
                     if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
+                        with open(file_path, 'wb') as f:
+                            f.write(orjson.dumps(data))
                         return Response(data)
                     else:
                         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.GetPolygonTimeSeries(refLow, refHigh, studyLow, studyHigh)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'download-evi-map':
                 data = core.getDownloadEVIMap(refLow, refHigh, studyLow, studyHigh)
@@ -124,21 +156,31 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-landcover-chart':
-                file_path = 'static/data/lulc/'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
-                
-                if os.path.exists(file_path):
-                    # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        return Response(data)
+                if area_type == 'country' or area_type == 'province':
+                    data = dbcore.get_landcover_stat(studyLow, studyHigh)
                 else:
                     data = core.getLandcoverArea(studyLow, studyHigh)
-                    if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
-                        return Response(data)
-                    else:
-                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # file_path = 'static/data/lulc/'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.getLandcoverArea(studyLow, studyHigh)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
 
             elif action == 'get-landcover-rice-map':
                 data = core.getLandCoverRiceMap(year)
@@ -169,52 +211,89 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
 
             elif action == 'get-landcover-rice-line-data':
-                file_path = 'static/data/lulc/rice/lc_rice_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
-                if os.path.exists(file_path):
-                    # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        return Response(data)
+                if area_type == 'country' or area_type == 'province':
+                    data = dbcore.get_landcover_stat(studyLow, studyHigh, landcover_type='rice')
                 else:
                     data = core.getLandcoverRiceArea(studyLow, studyHigh)
-                    if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
-                        return Response(data)
-                    else:
-                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # file_path = 'static/data/lulc/rice/lc_rice_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.getLandcoverRiceArea(studyLow, studyHigh)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
 
             elif action == 'get-landcover-rubber-line-data':
-                file_path = 'static/data/lulc/rubber/lc_rubber_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
-                if os.path.exists(file_path):
-                    # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        return Response(data)
+                if area_type == 'country' or area_type == 'province':
+                    data = dbcore.get_landcover_stat(studyLow, studyHigh, landcover_type='rice')
                 else:
                     data = core.getLandcoverRubberArea(studyLow, studyHigh)
-                    if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
-                        return Response(data)
-                    else:
-                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # file_path = 'static/data/lulc/rubber/lc_rubber_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.getLandcoverRubberArea(studyLow, studyHigh)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-landcover-baselinemeasure-area':
                 file_path = f"static/data/lulc/{land_cover_type}_bmarea_{area_type}_{area_id}_{refLow}_{refHigh}_{studyLow}_{studyHigh}.json"
                 if os.path.exists(file_path):
                     # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
+                    with open(file_path, 'rb') as file:
+                        data = orjson.loads(file.read())
                         return Response(data)
                 else:
                     data = core.getLCBaselineMeasureArea(refLow, refHigh, studyLow, studyHigh, land_cover_type)
                     if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
+                        # Create directories if they don't exist
+                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                        with open(file_path, 'wb') as f:
+                            f.write(orjson.dumps(data))
+                        # print(data)
                         return Response(data)
                     else:
                         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.getLCBaselineMeasureArea(refLow, refHigh, studyLow, studyHigh, land_cover_type)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             #============= Forest Monitoring ==========*/
             elif action == 'get-forest-gain-map':

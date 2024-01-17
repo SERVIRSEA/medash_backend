@@ -158,7 +158,7 @@ class GEEApi():
 
         #polygon area in square kilometers.
         self.geometryArea = self.geometry.area().divide(1000 * 1000)
-        #polygon area in Hectare
+        # polygon area in Hectare
         self.geometryArea = float(self.geometryArea.getInfo()) / 0.010000
 
     def getTileLayerUrl(self, ee_image_object):
@@ -502,7 +502,10 @@ class GEEApi():
 
     def calRiceTimeSeries(self, series_start, series_end, year):
         total_area = self.calLandcoverArea(series_start, series_end, year)
-        rice_area = total_area["rice"]
+        try:
+            rice_area = total_area["rice"]
+        except (KeyError, TypeError):
+            rice_area = 0
         return rice_area
 
     def getLandcoverRiceArea(self, start_year, end_year): 
@@ -553,7 +556,11 @@ class GEEApi():
 
     def calRubberTimeSeries(self, series_start, series_end, year):
         total_area = self.calLandcoverArea(series_start, series_end, year)
-        rubber_area = total_area["rubber"]
+        # rubber_area = total_area["rubber"]
+        try:
+            rubber_area = total_area["rubber"]
+        except (KeyError, TypeError):
+            rubber_area = 0
         return rubber_area
 
     def getLandcoverRubberArea(self, start_year, end_year): 
@@ -766,13 +773,13 @@ class GEEApi():
                 forest_alert = forest_featurecol.filter(ee.Filter.eq('NAME_ENGLI', area_id))
             elif area_type == "province":
                 forest_featurecol = ee.FeatureCollection(GEEApi.GLAD_FOREST_ALERT_FC+""+str(year)+"/province_Metadata")
-                forest_alert = forest_featurecol.filter(ee.Filter.eq('gid', area_id))
+                forest_alert = forest_featurecol.filter(ee.Filter.eq('gid', int(area_id)))
             elif area_type == "district":
                 forest_featurecol = ee.FeatureCollection(GEEApi.GLAD_FOREST_ALERT_FC+""+str(year)+"/district_Metadata")
-                forest_alert = forest_featurecol.filter(ee.Filter.eq('DIST_CODE', area_id))
+                forest_alert = forest_featurecol.filter(ee.Filter.eq('DIST_CODE', str(area_id)))
             elif area_type == "protected_area":
                 forest_featurecol = ee.FeatureCollection(GEEApi.GLAD_FOREST_ALERT_FC+""+str(year)+"/protected_Metadata")
-                forest_alert = forest_featurecol.filter(ee.Filter.eq('map_id', area_id))
+                forest_alert = forest_featurecol.filter(ee.Filter.eq('map_id', str(area_id)))
 
             areaHA = forest_alert.aggregate_array("areaHect").get(0).getInfo()
 

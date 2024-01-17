@@ -53,3 +53,246 @@ class APIKey(models.Model):
     def hash_api_key(self, input_str):
         # Hash the input string using a strong cryptographic hash function (e.g., SHA-256)
         return hashlib.sha256(input_str.encode()).hexdigest()
+
+class LandCoverNational(models.Model):
+    country = models.CharField(max_length=100)
+    landcover = models.CharField(max_length=100)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Land Cover National'
+
+    def __str__(self):
+        return self.country
+
+class LandCoverProvince(models.Model):
+    province = models.CharField(max_length=100, null=True, blank=True)
+    gid = models.IntegerField()
+    landcover = models.CharField(max_length=100)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Land Cover Province'
+
+    def __str__(self):
+        return self.province
+
+class LandCoverDistrict(models.Model):
+    district = models.CharField(max_length=100)
+    dist_code = models.CharField(max_length=50)
+    landcover = models.CharField(max_length=100)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Land Cover District'
+
+    def __str__(self):
+        return self.district
+
+class LandCoverProtectedArea(models.Model):
+    protected_area = models.CharField(max_length=100)
+    pid = models.CharField(max_length=50)
+    landcover = models.CharField(max_length=100)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Land Cover Protected Area'
+
+    def __str__(self):
+        return self.protected_area
+
+class GLADAlertNational(models.Model):
+    country = models.CharField(max_length=100)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'GLAD Alert National'
+
+    def __str__(self):
+        return self.country
+
+class GLADAlertProvince(models.Model):
+    province = models.CharField(max_length=100, null=True, blank=True)
+    gid = models.IntegerField()
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'GLAD Alert Province'
+
+    def __str__(self):
+        return self.province
+
+class GLADAlertDistrict(models.Model):
+    district = models.CharField(max_length=100)
+    dist_code = models.CharField(max_length=50)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    class Meta:
+        verbose_name_plural = 'GLAD Alert District'
+
+    def __str__(self):
+        return self.district
+
+class GLADAlertProtectedArea(models.Model):
+    protected_area = models.CharField(max_length=100)
+    pid = models.CharField(max_length=50)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'GLAD Alert Protected Area'
+
+    def __str__(self):
+        return self.protected_area
+
+class SARAlertNational(models.Model):
+    country = models.CharField(max_length=100)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'SAR Alert National'
+
+    def __str__(self):
+        return self.country
+
+class SARAlertProvince(models.Model):
+    province = models.CharField(max_length=100, null=True, blank=True)
+    gid = models.IntegerField()
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'SAR Alert Province'
+
+    def __str__(self):
+        return self.province
+
+class SARAlertDistrict(models.Model):
+    district = models.CharField(max_length=100)
+    dist_code = models.CharField(max_length=50)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    class Meta:
+        verbose_name_plural = 'SAR Alert District'
+
+    def __str__(self):
+        return self.district
+
+class SARAlertProtectedArea(models.Model):
+    protected_area = models.CharField(max_length=100)
+    pid = models.CharField(max_length=50)
+    year = models.IntegerField()
+    areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'SAR Alert Protected Area'
+
+    def __str__(self):
+        return self.protected_area
+
+class FireHotspotNational(models.Model):
+    country = models.CharField(max_length=100)
+    year = models.IntegerField()
+    fireNum = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Fire Hotspot National'
+
+    def __str__(self):
+        return self.country
+
+class FireHotspotProvince(models.Model):
+    province = models.CharField(max_length=100, null=True, blank=True)
+    gid = models.IntegerField()
+    year = models.IntegerField()
+    fireNum = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Fire Hotspot Province'
+
+    def __str__(self):
+        return self.province
+
+class FireHotspotDistrict(models.Model):
+    district = models.CharField(max_length=100)
+    dist_code = models.CharField(max_length=50)
+    year = models.IntegerField()
+    fireNum = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    class Meta:
+        verbose_name_plural = 'Fire Hotspot District'
+
+    def __str__(self):
+        return self.district
+
+class FireHotspotProtectedArea(models.Model):
+    protected_area = models.CharField(max_length=100)
+    pid = models.CharField(max_length=50)
+    year = models.IntegerField()
+    fireNum = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Fire Hotspot Protected Area'
+
+    def __str__(self):
+        return self.protected_area
+
+class ForestCoverNational(models.Model):
+    country = models.CharField(max_length=100)
+    year = models.IntegerField()
+    forest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+    nonforest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Forest Cover National'
+
+    def __str__(self):
+        return self.country
+
+class ForestCoverProvince(models.Model):
+    province = models.CharField(max_length=100, null=True, blank=True)
+    gid = models.IntegerField()
+    year = models.IntegerField()
+    forest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+    nonforest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Forest Cover Province'
+
+    def __str__(self):
+        return self.province
+
+class ForestCoverDistrict(models.Model):
+    district = models.CharField(max_length=100)
+    dist_code = models.CharField(max_length=50)
+    year = models.IntegerField()
+    forest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+    nonforest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    class Meta:
+        verbose_name_plural = 'Forest Cover District'
+
+    def __str__(self):
+        return self.district
+
+class ForestCoverProtectedArea(models.Model):
+    protected_area = models.CharField(max_length=100)
+    pid = models.CharField(max_length=50)
+    year = models.IntegerField()
+    forest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+    nonforest_areaHa = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Forest Cover Protected Area'
+
+    def __str__(self):
+        return self.protected_area
