@@ -85,8 +85,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = '/medash/static/'
-
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static')
 
 STATICFILES_DIRS = [
