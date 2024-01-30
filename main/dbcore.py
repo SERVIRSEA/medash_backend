@@ -134,13 +134,14 @@ class DBData:
                 serializer_class = area_info['serializer']
                 serializer = serializer_class(db_data, many=True)
                 data = serializer.data
+                formatted_data = {str(entry['year']): {"forest": float(entry['forest_areaHa']), "noneForest": float(entry['nonforest_areaHa'])} for entry in data}
             else:
-                data = {'error': f"No model defined for area type: {self.area_type}"}
+                formatted_data = {'error': f"No model defined for area type: {self.area_type}"}
 
         except Exception as e:
-            data = {'error': str(e)}
+            formatted_data = {'error': str(e)}
 
-        return data
+        return formatted_data
 
     def get_sar_alert_stat(self, start_year, end_year):
         try:
@@ -260,13 +261,16 @@ class DBData:
                 serializer_class = area_info['serializer']
                 serializer = serializer_class(db_data, many=True)
                 data = serializer.data
+                # Transform the data into the desired format
+                transformed_data = {str(entry['year']): float(entry['fireNum']) for entry in data}
+                # print(transformed_data)
             else:
-                data = {'error': f"No model defined for area type: {self.area_type}"}
+                transformed_data = {'error': f"No model defined for area type: {self.area_type}"}
 
         except Exception as e:
-            data = {'error': str(e)}
+            transformed_data = {'error': str(e)}
 
-        return data
+        return transformed_data
 
 
 
