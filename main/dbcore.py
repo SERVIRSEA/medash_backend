@@ -10,6 +10,22 @@ from .serializers import (
     LandCoverProvinceSerializer,
     LandCoverDistrictSerializer,
     LandCoverProtectedAreaSerializer,
+    ForestCoverNationalSerializer,
+    ForestCoverProvinceSerializer,
+    ForestCoverDistrictSerializer,
+    ForestCoverProtectedAreaSerializer,
+    SARAlertNationalSerializer,
+    SARAlertProvinceSerializer,
+    SARAlertDistrictSerializer,
+    SARAlertProtectedAreaSerializer,
+    GLADAlertNationalSerializer,
+    GLADAlertProvinceSerializer,
+    GLADAlertDistrictSerializer,
+    GLADAlertProtectedAreaSerializer,
+    FireHotspotNationalSerializer,
+    FireHotspotProvinceSerializer,
+    FireHotspotDistrictSerializer,
+    FireHotspotProtectedAreaSerializer
 )
 
 class DBData:
@@ -47,21 +63,11 @@ class DBData:
                     db_data = db_model.objects.filter(**query_params)
                 else:
                     field_name = area_info['field_name']
-                    query_params[field_name] = self.area_id
+                    dist_code = int(self.area_id)
+                    query_params[field_name] = dist_code
                     db_data = db_model.objects.filter(**query_params)
-                # if self.area_type == 'country':
-                #     db_data = db_model.objects.filter(
-                #         year__range=(int(start_year), int(end_year)),
-                #         landcover=landcover_type if landcover_type != 'all' else None
-                #     )
-                # else:
-                #     field_name = area_info['field_name']
-                #     db_data = db_model.objects.filter(
-                #         **{field_name: self.area_id},
-                #         year__range=(int(start_year), int(end_year)),
-                #         landcover=landcover_type if landcover_type != 'all' else ''
-                #     )
-
+                    
+                
                 # Serialize data using the appropriate serializer
                 serializer_class = area_info['serializer']
                 serializer = serializer_class(db_data, many=True)
@@ -210,13 +216,16 @@ class DBData:
                 serializer_class = area_info['serializer']
                 serializer = serializer_class(db_data, many=True)
                 data = serializer.data
+                # Transform the data into the desired format
+                transformed_data = {str(entry['year']): float(entry['areaHa']) for entry in data}
+                # print(transformed_data)
             else:
-                data = {'error': f"No model defined for area type: {self.area_type}"}
+                transformed_data = {'error': f"No model defined for area type: {self.area_type}"}
 
         except Exception as e:
-            data = {'error': str(e)}
+            transformed_data = {'error': str(e)}
 
-        return data
+        return transformed_data
 
     def get_fire_hotspot_stat(self, start_year, end_year):
         try:

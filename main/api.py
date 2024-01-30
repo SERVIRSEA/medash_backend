@@ -156,7 +156,7 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-landcover-chart':
-                if area_type == 'country' or area_type == 'province':
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
                     data = dbcore.get_landcover_stat(studyLow, studyHigh)
                 else:
                     data = core.getLandcoverArea(studyLow, studyHigh)
@@ -211,7 +211,7 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
 
             elif action == 'get-landcover-rice-line-data':
-                if area_type == 'country' or area_type == 'province':
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
                     data = dbcore.get_landcover_stat(studyLow, studyHigh, landcover_type='rice')
                 else:
                     data = core.getLandcoverRiceArea(studyLow, studyHigh)
@@ -237,7 +237,7 @@ def api(request):
                 #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
 
             elif action == 'get-landcover-rubber-line-data':
-                if area_type == 'country' or area_type == 'province':
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
                     data = dbcore.get_landcover_stat(studyLow, studyHigh, landcover_type='rice')
                 else:
                     data = core.getLandcoverRubberArea(studyLow, studyHigh)
@@ -320,6 +320,8 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-forest-nonforest-chart-data':
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
+                    pass
                 file_path = 'static/data/forest/fnf_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
                 if os.path.exists(file_path):
                     # Read and parse the JSON data
@@ -376,20 +378,30 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-glad-alert-chart-data':
-                file_path = 'static/data/forestalert/glad/glad_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
-                if os.path.exists(file_path):
-                    # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        return Response(data)
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
+                    data = dbcore.get_glad_alert_stat(studyLow, studyHigh)
                 else:
                     data = core.getGLADAlertArea(studyLow, studyHigh, area_type, area_id)
-                    if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
-                        return Response(data)
-                    else:
-                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # file_path = 'static/data/forestalert/glad/glad_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.getGLADAlertArea(studyLow, studyHigh, area_type, area_id)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-sar-alert-map':
                 data = core.getSARAlertMap(year)
@@ -423,20 +435,30 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             elif action == 'get-burned-area-chart-data':
-                file_path = 'static/data/firehotspot/fhs_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
-                if os.path.exists(file_path):
-                    # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        return Response(data)
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
+                    data = dbcore.get_fire_hotspot_stat(studyLow, studyHigh)
                 else:
                     data = core.getBurnedArea(studyLow, studyHigh, area_type, area_id)
-                    if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
-                        return Response(data)
-                    else:
-                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # file_path = 'static/data/firehotspot/fhs_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.getBurnedArea(studyLow, studyHigh, area_type, area_id)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
 
             #=============== Drought Monitoring ========================>
             elif action == 'get-drought-index-map':

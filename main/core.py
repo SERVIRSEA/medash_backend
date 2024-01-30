@@ -796,38 +796,45 @@ class GEEApi():
 
     # -------------------------------------------------------------------------
     def calSARAlert(self, series_start, series_end, year):
-        if year == 2021:
-            image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2021V4')
-            image = image.select("landclass").clip(self.geometry).toInt16()
-            binary_image = image.rename(['binary']).selfMask()
+        try:
+            if year == 2021:
+                image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2021V4')
+            elif year == 2022:
+                image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2022V4')
+            else:
+                SARIC = ee.ImageCollection(GEEApi.SAR_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
+                image = SARIC.sort('system:time_start', False).first()
 
-        elif year == 2022:
-            image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2022V4')
-            image = image.select("landclass").clip(self.geometry).toInt16()
-            binary_image = image.rename(['binary']).selfMask()
-        else: 
-            SARIC = ee.ImageCollection(GEEApi.SAR_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
-            # image = ee.Image(GEEApi.SAR_ALERT+"/"+"alert_"+str(year))
-            image = SARIC.sort('system:time_start', False).first()
-            image = image.select("landclass").clip(self.geometry).toInt16()
-            binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
-        
-        #ee.Image.pixelArea()
-        #multiply 900 (30m * 30m)
-        reducer = binary_image.multiply(ee.Image.pixelArea()).reduceRegion(
-            reducer= ee.Reducer.sum(),
-            geometry= self.geometry,
-            crs = 'EPSG:32647', # WGS Zone N 47
-            scale= 30,
-            maxPixels= 1E20
-        )
-        #area in squre meter
-        # stats = reducer.getInfo()['binary']
-        stats = reducer.getInfo()['binary'] if reducer.getInfo().get('binary') is not None else 0
-        #convert to hactare divide by 10000
-        areaHA = stats / 10000
+            # Ensure that the "landclass" band exists in the image
+            if "landclass" not in image.bandNames().getInfo():
+                raise ValueError("The 'landclass' band is not available in the selected image.")
 
-        return areaHA
+            # Select the 'landclass' band
+            landclass_image = image.select("landclass").clip(self.geometry).toInt16()
+
+            # Create a binary image based on the selected landclass
+            binary_image = landclass_image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
+
+            # Compute area in square meters
+            reducer = binary_image.multiply(ee.Image.pixelArea()).reduceRegion(
+                reducer=ee.Reducer.sum(),
+                geometry=self.geometry,
+                crs='EPSG:32647',  # WGS Zone N 47
+                scale=30,
+                maxPixels=1E20
+            )
+
+            # Get the area in square meters
+            stats = reducer.getInfo()['binary'] if reducer.getInfo().get('binary') is not None else 0
+
+            # Convert to hectares (divide by 10000)
+            areaHA = stats / 10000
+
+            return areaHA
+
+        except Exception as e:
+            # Handle exceptions (e.g., missing bands, invalid images)
+            return 0
     
     # -------------------------------------------------------------------------
     def getSARAlertArea(self, start_year, end_year):
