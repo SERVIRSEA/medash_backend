@@ -32,7 +32,10 @@ class DBData:
 
     def __init__(self, area_type, area_id):
         self.area_type = area_type
-        self.area_id = area_id
+        if area_type == "district":
+            self.area_id = int(area_id)
+        else:
+            self.area_id = area_id
 
     def get_landcover_stat(self, start_year, end_year, landcover_type='all'):
         try:
@@ -63,7 +66,7 @@ class DBData:
                     db_data = db_model.objects.filter(**query_params)
                 else:
                     field_name = area_info['field_name']
-                    dist_code = int(self.area_id)
+                    dist_code = self.area_id
                     query_params[field_name] = dist_code
                     db_data = db_model.objects.filter(**query_params)
                     
@@ -176,13 +179,16 @@ class DBData:
                 serializer_class = area_info['serializer']
                 serializer = serializer_class(db_data, many=True)
                 data = serializer.data
+            # Transform the data into the desired format
+                transformed_data = {str(entry['year']): float(entry['areaHa']) for entry in data}
+                # print(transformed_data)
             else:
-                data = {'error': f"No model defined for area type: {self.area_type}"}
+                transformed_data = {'error': f"No model defined for area type: {self.area_type}"}
 
         except Exception as e:
-            data = {'error': str(e)}
+            transformed_data = {'error': str(e)}
 
-        return data
+        return transformed_data
 
     def get_glad_alert_stat(self, start_year, end_year):
         try:

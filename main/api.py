@@ -326,20 +326,31 @@ def api(request):
                 return Response(data)
 
             elif action == 'get-sar-alert-chart-data':
-                file_path = 'static/data/forestalert/sar/sar_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
-                if os.path.exists(file_path):
-                    # Read and parse the JSON data
-                    with open(file_path, 'r') as file:
-                        data = json.load(file)
-                        return Response(data)
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
+                    data = dbcore.get_sar_alert_stat(studyLow, studyHigh)
                 else:
-                    data = core.getSARAlertArea(studyLow, studyHigh)
-                    if data:
-                        with open(file_path, 'w') as f:
-                            json.dump(data, f)
-                        return Response(data)
-                    else:
-                        return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                    data = core.getSARAlertArea(studyLow, studyHigh, area_type, area_id)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                
+                # file_path = 'static/data/forestalert/sar/sar_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
+                # if os.path.exists(file_path):
+                #     # Read and parse the JSON data
+                #     with open(file_path, 'r') as file:
+                #         data = json.load(file)
+                #         return Response(data)
+                # else:
+                #     data = core.getSARAlertArea(studyLow, studyHigh)
+                #     if data:
+                #         with open(file_path, 'w') as f:
+                #             json.dump(data, f)
+                #         return Response(data)
+                #     else:
+                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
             #============= Fire Hotspot Monitoring ==========*/
             elif action == 'get-burned-area':
