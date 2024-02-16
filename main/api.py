@@ -44,6 +44,7 @@ def api(request):
             'get-burned-area',
             'get-burned-area-chart-data',
             'get-drought-index-map',
+            'get-drought-index-dates',
             'get-landcover-baselinemeasure-area',
             'download-evi-map',
             'download-landcover-map',
@@ -336,22 +337,6 @@ def api(request):
                 else:
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
                 
-                
-                # file_path = 'static/data/forestalert/sar/sar_'+area_type+"_"+area_id+"_"+studyLow+"_"+studyHigh+".json"
-                # if os.path.exists(file_path):
-                #     # Read and parse the JSON data
-                #     with open(file_path, 'r') as file:
-                #         data = json.load(file)
-                #         return Response(data)
-                # else:
-                #     data = core.getSARAlertArea(studyLow, studyHigh)
-                #     if data:
-                #         with open(file_path, 'w') as f:
-                #             json.dump(data, f)
-                #         return Response(data)
-                #     else:
-                #         return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
-            
             #============= Fire Hotspot Monitoring ==========*/
             elif action == 'get-burned-area':
                 data = core.getBurnedMap(year, area_type)
@@ -376,6 +361,13 @@ def api(request):
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
                 
             #=============== Drought Monitoring ========================>
+            elif action == 'get-drought-index-dates':
+                data = core.get_date_from_drought_index_collection(index)
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
             elif action == 'get-drought-index-map':
                 data = core.getDroughtIndexMap(index, date)
                 if data:

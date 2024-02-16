@@ -1,4 +1,5 @@
 import os, ee, time, json
+import orjson
 from datetime import datetime, timedelta, date
 from ee.ee_exception import EEException
 from django.http import JsonResponse
@@ -1582,3 +1583,19 @@ class GEEApi():
             indexMap = self.getTileLayerUrl(image.visualize(min=vis_params['min'], max=vis_params['max'], palette=vis_params['palette']))
         
         return indexMap
+
+    def get_date_from_drought_index_collection(self, index):
+        image_collection_path = getattr(GEEApi, index.upper())
+        
+        image_collection = (
+            ee.ImageCollection(image_collection_path)
+            .filterBounds(self.geometry)
+        )
+
+        # Map a lambda function to add a new property 'acquisition_date' to each image in the collection
+        collection_with_dates = image_collection.map(lambda image: image.set('date', ee.Date(image.get('system:time_start')).format('YYYY-MM-dd')))
+
+        # Extract the acquisition dates as a list
+        dates_list = collection_with_dates.aggregate_array('date').getInfo()
+        
+        return dates_list
