@@ -55,7 +55,8 @@ def api(request):
             'download-saralert-map',
             'download-forest-gain-map',
             'download-forest-loss-map',
-            'download-forest-extent-map'
+            'download-forest-extent-map',
+            'download-drought-index-map'
         ]
 
         if action in request_methods:
@@ -375,4 +376,8 @@ def api(request):
                 else:
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
+            elif action == 'download-drought-index-map':
+                data = core.downloadDroughtIndexMap(index, date)
+                return Response(data)
+
     return Response({'error': 'Bad request, action parameter is required or not valid.'}, status=status.HTTP_400_BAD_REQUEST)

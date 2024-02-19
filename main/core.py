@@ -1584,6 +1584,49 @@ class GEEApi():
         
         return indexMap
 
+    def downloadDroughtIndexMap(self, index, date):
+        dateStr = str(date)
+        image_collection_path = getattr(GEEApi, index.upper())
+        
+        image_collection = (
+            ee.ImageCollection(image_collection_path)
+            .filterBounds(self.geometry)
+            # .sort('system:time_start', False)
+        )
+
+        if index == 'vhi':
+            date_obj = datetime.strptime(date, '%Y-%m-%d')
+            # Format the datetime object to 'YYYY_MM_dd'
+            formatted_date = date_obj.strftime('%Y_%m_%d')
+            vhi_filter = ee.Filter.eq('system:index', f'vhi_{formatted_date}')
+            image_collection = image_collection.filter(vhi_filter)
+        else:
+            date = ee.Date(date)
+            filter = ee.Filter.date(date, date.advance(1, 'day'))
+            image_collection = image_collection.filter(filter)
+
+        image = image_collection.first().clip(self.geometry)
+        vis_params = self.getVisualizationParams(index)
+        band_name = vis_params.get('band', 'NDVI')
+        image = image.select(band_name)
+        image = image.selfMask()
+        imgScale = image.projection().nominalScale()
+        image = image.reproject(crs='EPSG:4326', scale=imgScale)
+
+        try:
+            dnldURL = image.getDownloadURL({
+                    'name': f'{index}_{dateStr}',
+                    'scale': 1000,
+                    'crs': 'EPSG:4326'
+                })
+            return {
+                'downloadURL': dnldURL,
+                'success': 'success'
+                    }
+        except Exception as e:
+            return {
+                'success': 'not success'
+            }
     def get_date_from_drought_index_collection(self, index):
         image_collection_path = getattr(GEEApi, index.upper())
         
