@@ -45,6 +45,7 @@ def api(request):
             'get-burned-area-chart-data',
             'get-drought-index-map',
             'get-drought-index-dates',
+            'get-weather-map',
             'get-landcover-baselinemeasure-area',
             'download-evi-map',
             'download-landcover-map',
@@ -56,7 +57,8 @@ def api(request):
             'download-forest-gain-map',
             'download-forest-loss-map',
             'download-forest-extent-map',
-            'download-drought-index-map'
+            'download-drought-index-map',
+            'download-weather-map'
         ]
 
         if action in request_methods:
@@ -70,7 +72,9 @@ def api(request):
             index = request.query_params.get('index', '')
             date = request.query_params.get('date', '')
             land_cover_type =  request.query_params.get('type', '')
-
+            weather_param = request.query_params.get('weather_param', '')
+            weather_type = request.query_params.get('weather_type', '')
+            
             core = GEEApi(area_type, area_id)
             dbcore = DBData(area_type, area_id)
 
@@ -378,6 +382,18 @@ def api(request):
             
             elif action == 'download-drought-index-map':
                 data = core.downloadDroughtIndexMap(index, date)
+                return Response(data)
+            
+            # Short-term weather
+            elif action == 'get-weather-map':
+                data = core.get_weather_map(weather_param, weather_type, download="False")
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'download-weather-map':
+                data = core.get_weather_map(weather_param, weather_type, download="True")
                 return Response(data)
 
     return Response({'error': 'Bad request, action parameter is required or not valid.'}, status=status.HTTP_400_BAD_REQUEST)

@@ -28,6 +28,13 @@ class GEEApi():
     RAINFALL = settings.RAINFALL
     SURF_TEMP = settings.SURF_TEMP
     REL_HUMID = settings.REL_HUMID
+    
+    STW_FORECAST_PRECIPITATION = settings.STW_FORECAST_PRECIPITATION
+    STW_FORECAST_TEMPERATURE = settings.STW_FORECAST_TEMPERATURE
+    STW_PAST_PRECIPITATION = settings.STW_PAST_PRECIPITATION
+    STW_PAST_TEMPERATURE = settings.STW_PAST_TEMPERATURE
+    SEASONAL_PRECIPITATION = settings.SEASONAL_PRECIPITATION
+    SEASONAL_TEMPERATURE = settings.SEASONAL_TEMPERATURE
 
     COLOR = ['A8D9C6','B0DAB2','BFE1C9','AAD7A0','C3DE98','D5E59E','93D2BF','95CF9C','A4D7B8','9BD291','B1D78A','C9E08E','5CC199','77C78C','37B54A','126039','146232','0F8040','279445','449644','59A044','0E361E','236832','335024', '36461F']
     # COLORFORESTALERT = ['943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1','943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1']
@@ -1616,7 +1623,7 @@ class GEEApi():
         try:
             dnldURL = image.getDownloadURL({
                     'name': f'{index}_{dateStr}',
-                    'scale': 1000,
+                    'scale': imgScale,
                     'crs': 'EPSG:4326'
                 })
             return {
@@ -1627,6 +1634,7 @@ class GEEApi():
             return {
                 'success': 'not success'
             }
+    
     def get_date_from_drought_index_collection(self, index):
         image_collection_path = getattr(GEEApi, index.upper())
         
@@ -1642,3 +1650,51 @@ class GEEApi():
         dates_list = collection_with_dates.aggregate_array('date').getInfo()
         
         return dates_list
+
+    # ================= Short term weather map =============>
+    def get_weather_map(self, weather_param, weather_type, download="False"):
+        if weather_type=="forecast":
+            if weather_param == "precipitation":
+                image_collection = ee.ImageCollection(self.STW_FORECAST_PRECIPITATION)
+            else:
+                image_collection = ee.ImageCollection(self.STW_FORECAST_TEMPERATURE)
+        
+        elif weather_type=="past":
+            if weather_param == "precipitation":
+                image_collection = ee.ImageCollection(self.STW_PAST_PRECIPITATION)
+            else:
+                image_collection = ee.ImageCollection(self.STW_PAST_TEMPERATURE)
+        
+        elif weather_type == "seasonal":
+            if weather_param == "precipitation":
+                image_collection =  ee.ImageCollection(self.SEASONAL_PRECIPITATION)
+            else:
+                image_collection =  ee.ImageCollection(self.SEASONAL_TEMPERATURE)     
+
+        # Sort the collection by date in descending order
+        sorted_collection = image_collection.sort('system:time_start', False)
+
+        # Get the first (latest) image from the sorted collection
+        latest_image = sorted_collection.first().clip(self.geometry)
+        image = latest_image.selfMask()
+        imgScale = image.projection().nominalScale()
+        image = image.reproject(crs='EPSG:4326', scale=imgScale)
+        
+        if download == "True":
+            try:
+                dnldURL = image.getDownloadURL({
+                        'name': f'{weather_param}_{weather_type}',
+                        'scale': imgScale,
+                        'crs': 'EPSG:4326'
+                    })
+                return {
+                    'downloadURL': dnldURL,
+                    'success': 'success'
+                        }
+            except Exception as e:
+                return {
+                    'success': 'not success'
+                }
+        else:
+            weatherMap = self.getTileLayerUrl(image.visualize(min=0, max=1, palette=['red']))
+            return weatherMap
