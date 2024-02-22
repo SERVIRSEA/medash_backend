@@ -49,7 +49,8 @@ class GEEApi():
     SLD_NDVI = ['E85B3A', 'F99E59', 'FEC981', 'FFEDAB', 'F7FCDF', 'C4E687', '97D265', '58B453', '1A9641']
     SLD_CWSI = ['1A9641','58B453','97D265','C4E687','F7FCDF','FFEDAB','FEC981','F99E59','E85B3A']
     SLD_VHI = ['1A9641','58B453','97D265','C4E687','F7FCDF','FFEDAB','FEC981','F99E59','E85B3A']
-    
+    SLD_PRECIP = ["#8c510a","#bf812d","#dfc27d","#f6e8c3","#c7eae5","#80cdc1","#35978f","#01665e","#003c30","#011f4b","#08306b"]
+    SLD_TEMP = ["#2b83ba","#5ea7b1","#91cba8","#bce4a9","#ddf1b4","#ffffbf","#fedf99","#fdbe74","#f59053","#e65538","#d7191c"]
     # Custom Raster style (SLD)
     SLD_CDI ="""
         <RasterSymbolizer>
@@ -1656,21 +1657,27 @@ class GEEApi():
         if weather_type=="forecast":
             if weather_param == "precipitation":
                 image_collection = ee.ImageCollection(self.STW_FORECAST_PRECIPITATION)
+                palette = GEEApi.SLD_PRECIP
             else:
                 image_collection = ee.ImageCollection(self.STW_FORECAST_TEMPERATURE)
-        
+                palette = GEEApi.SLD_TEMP
+
         elif weather_type=="past":
             if weather_param == "precipitation":
                 image_collection = ee.ImageCollection(self.STW_PAST_PRECIPITATION)
+                palette = GEEApi.SLD_PRECIP
             else:
                 image_collection = ee.ImageCollection(self.STW_PAST_TEMPERATURE)
-        
+                palette = GEEApi.SLD_TEMP
+
         elif weather_type == "seasonal":
             if weather_param == "precipitation":
                 image_collection =  ee.ImageCollection(self.SEASONAL_PRECIPITATION)
+                palette = GEEApi.SLD_PRECIP
             else:
                 image_collection =  ee.ImageCollection(self.SEASONAL_TEMPERATURE)     
-
+                palette = GEEApi.SLD_TEMP
+                
         # Sort the collection by date in descending order
         sorted_collection = image_collection.sort('system:time_start', False)
 
@@ -1679,6 +1686,14 @@ class GEEApi():
         image = latest_image.selfMask()
         imgScale = image.projection().nominalScale()
         image = image.reproject(crs='EPSG:4326', scale=imgScale)
+        
+        # Rename the band if needed
+        image = image.rename([weather_param])
+
+        # Compute minimum and maximum values
+        stats = image.reduceRegion(reducer=ee.Reducer.minMax(), geometry=self.geometry, scale=imgScale)
+        min_value = round(stats.get(weather_param+'_min').getInfo(), 2)
+        max_value = round(stats.get(weather_param+'_max').getInfo(), 2)
         
         if download == "True":
             try:
@@ -1696,5 +1711,16 @@ class GEEApi():
                     'success': 'not success'
                 }
         else:
-            weatherMap = self.getTileLayerUrl(image.visualize(min=0, max=1, palette=['red']))
-            return weatherMap
+            # Apply conditional coloring based on the parameter
+            if weather_param == "precipitation":
+                vis_params = {'min': min_value, 'max': max_value, 'palette': palette}
+            else:
+                vis_params = {'min': min_value, 'max': max_value, 'palette': palette}
+
+            weather_map_url = self.getTileLayerUrl(image.visualize(**vis_params))
+            
+            return {
+                'geeURL': weather_map_url,
+                'min': min_value,
+                'max': max_value
+            }
