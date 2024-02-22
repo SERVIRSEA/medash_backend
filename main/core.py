@@ -47,18 +47,23 @@ class GEEApi():
     geometry = ee.FeatureCollection(CAMBODIA_COUNTRY_BOUNDARY).geometry()
 
     SLD_NDVI = ['E85B3A', 'F99E59', 'FEC981', 'FFEDAB', 'F7FCDF', 'C4E687', '97D265', '58B453', '1A9641']
-    SLD_CWSI = ['1A9641','58B453','97D265','C4E687','F7FCDF','FFEDAB','FEC981','F99E59','E85B3A']
-    SLD_VHI = ['1A9641','58B453','97D265','C4E687','F7FCDF','FFEDAB','FEC981','F99E59','E85B3A']
+    SLD_CWSI = ['E85B3A', 'F99E59', 'FEC981', 'FFEDAB', 'F7FCDF', 'C4E687', '97D265', '58B453', '1A9641']
+    SLD_VHI = ['E85B3A', 'F99E59', 'FEC981', 'FFEDAB', 'F7FCDF', 'C4E687', '97D265', '58B453', '1A9641']
     SLD_PRECIP = ["#8c510a","#bf812d","#dfc27d","#f6e8c3","#c7eae5","#80cdc1","#35978f","#01665e","#003c30","#011f4b","#08306b"]
     SLD_TEMP = ["#2b83ba","#5ea7b1","#91cba8","#bce4a9","#ddf1b4","#ffffbf","#fedf99","#fdbe74","#f59053","#e65538","#d7191c"]
+    # SLD_REL_HUMID = ["#7C3595","#9B65AE","#BA98C9","#D4C1DD","#ECE5EF","#E5F1E4","#C1E5BD","#95D295","#4AAD66","#008837"]
+    # SLD_SURF_TEMP = ["#0370AF","#348DBF","#75B4D4","#A5CEE2","#CDE2EC","#F6F6F6","#F4D5C7","#F4B599","#EB846E","#DA4247","#CA0020"]
+    # SLD_RAINFALL = ["#FFFFFF","#E5B42C","#E3B022","#F2B464","#F2B464","#F3E976","#91CE7E","#89CE74","#43BE87","#34B485","#30B282","#069B42","#069B42"]
+    
     # Custom Raster style (SLD)
     SLD_CDI ="""
         <RasterSymbolizer>
             <ColorMap type="intervals" extended="false">
-                <ColorMapEntry color="#88A541" quantity="0" label="Normal" />
-                <ColorMapEntry color="#F89F1D" quantity="1" label="Watch" />
-                <ColorMapEntry color="#B97A57" quantity="2" label="Warning" />
-                <ColorMapEntry color="#880015" quantity="3" label="Alert" />
+                <ColorMapEntry color="#88A541" quantity="1" label="Normal" />
+                <ColorMapEntry color="#F89F1D" quantity="2" label="Watch" />
+                <ColorMapEntry color="#B97A57" quantity="3" label="Warning" />
+                <ColorMapEntry color="#880015" quantity="4" label="Alert" />
+                <ColorMapEntry color="#880015" quantity="5" label="Alert" />
             </ColorMap>
         </RasterSymbolizer>
     """
@@ -69,7 +74,8 @@ class GEEApi():
                 <ColorMapEntry color="#880015" quantity="-2.0" label="EXD (less than  -2.0)" />
                 <ColorMapEntry color="#B97A57" quantity="-1.50" label="SED (-1.5 - -1.99)" />
                 <ColorMapEntry color="#F89F1D" quantity="-1.0" label="MOD (-1.0 - -1.49)" />
-                <ColorMapEntry color="#FFFFFF" quantity="10" label="Normal or Wet (gt -0.99)" />
+                <ColorMapEntry color="#88A541" quantity="0" label="Normal or Wet (gt -0.99)" />
+                <ColorMapEntry color="#88A541" quantity="10" label="Normal or Wet (gt -0.99)" />
             </ColorMap>
         </RasterSymbolizer>
     """
@@ -80,7 +86,7 @@ class GEEApi():
                 <ColorMapEntry color="#880015" quantity="5" label="EXD (0 - 5)"/>
                 <ColorMapEntry color="#B97A57" quantity="10" label="SED (6 - 10)" />
                 <ColorMapEntry color="#F89F1D" quantity="20" label="MOD (11 - 20)" />
-                <ColorMapEntry color="#FFFFFF" quantity="10000" label="Normal or Wet (gt 21)" />
+                <ColorMapEntry color="#88A541" quantity="10000" label="Normal or Wet (gt 21)" />
             </ColorMap>
         </RasterSymbolizer>
     """
@@ -88,16 +94,16 @@ class GEEApi():
     SLD_SURF_TEMP = """
         <RasterSymbolizer>
             <ColorMap type="intervals" extended="false" >
-                <ColorMapEntry color="#0370AF" quantity="15" label="0 - 10"/>
-                <ColorMapEntry color="#348DBF" quantity="20" label="10 - 13" />
-                <ColorMapEntry color="#75B4D4" quantity="21" label="13 - 16" />
-                <ColorMapEntry color="#A5CEE2" quantity="22" label="16 - 19" />
-                <ColorMapEntry color="#CDE2EC" quantity="23" label="19 - 22"/>
-                <ColorMapEntry color="#F6F6F6" quantity="24" label="22 - 25" />
-                <ColorMapEntry color="#F4D5C7" quantity="26" label="25 - 28" />
-                <ColorMapEntry color="#F4B599" quantity="28" label="28 - 31" />
-                <ColorMapEntry color="#EB846E" quantity="29" label="31 - 34"/>
-                <ColorMapEntry color="#DA4247" quantity="30" label="34 - 36" />
+                <ColorMapEntry color="#0370AF" quantity="10" label="0 - 10"/>
+                <ColorMapEntry color="#348DBF" quantity="13" label="10 - 13" />
+                <ColorMapEntry color="#75B4D4" quantity="16" label="13 - 16" />
+                <ColorMapEntry color="#A5CEE2" quantity="19" label="16 - 19" />
+                <ColorMapEntry color="#CDE2EC" quantity="22" label="19 - 22"/>
+                <ColorMapEntry color="#F6F6F6" quantity="25" label="22 - 25" />
+                <ColorMapEntry color="#F4D5C7" quantity="28" label="25 - 28" />
+                <ColorMapEntry color="#F4B599" quantity="31" label="28 - 31" />
+                <ColorMapEntry color="#EB846E" quantity="34" label="31 - 34"/>
+                <ColorMapEntry color="#DA4247" quantity="36" label="34 - 36" />
                 <ColorMapEntry color="#CA0020" quantity="100" label="36 +" />
             </ColorMap>
         </RasterSymbolizer>
@@ -125,7 +131,7 @@ class GEEApi():
 
     SLD_REL_HUMID = """
         <RasterSymbolizer>
-            <ColorMap type="intervals" extended="false" >
+            <ColorMap type="intervals" extended="false">
                 <ColorMapEntry color="#7C3595" quantity="10" label="Less than 10"/>
                 <ColorMapEntry color="#9B65AE" quantity="20" label="10 - 20" />
                 <ColorMapEntry color="#BA98C9" quantity="30" label="20 - 30" />
@@ -1543,9 +1549,9 @@ class GEEApi():
     def getVisualizationParams(self, index):
         params_dict = {
             'ndvi': {'min': -10000, 'max': 10000, 'palette': GEEApi.SLD_NDVI, 'sld': False, 'band': 'NDVI'},
-            'vhi': {'min': 0, 'max': 10000, 'palette': GEEApi.SLD_VHI, 'sld': False, 'band': 'VHI'},
+            'vhi': {'min': -10000, 'max': 10000, 'palette': GEEApi.SLD_VHI, 'sld': False, 'band': 'VHI'},
             'cwsi': {'min': 0, 'max': 1, 'palette': GEEApi.SLD_CWSI, 'sld': False, 'band': 'CWSI'},
-            'cdi': {'min': 0, 'max': 10, 'palette': GEEApi.SLD_CDI, 'sld': True, 'band': 'cdi'},
+            'cdi': {'min': 1, 'max': 10, 'palette': GEEApi.SLD_CDI, 'sld': True, 'band': 'cdi'},
             'spi3': {'min': -10, 'max': 10, 'palette': GEEApi.SLD_SPI3, 'sld': True, 'band': 'b1'},
             'soil_moist': {'min': 0, 'max': 100, 'palette': GEEApi.SLD_SOIL_MOIST, 'sld': True, 'band': 'b1'},
             'rainfall': {'min': 0, 'max': 100, 'palette': GEEApi.SLD_RAINFALL, 'sld': True, 'band': 'b1'},
@@ -1579,7 +1585,7 @@ class GEEApi():
         band_name = vis_params.get('band', 'NDVI')
         sld =  vis_params.get('sld')
         image = image.select(band_name)
-        image = image.selfMask()
+        # image = image.selfMask()
         imgScale = image.projection().nominalScale()
         image = image.reproject(crs='EPSG:4326', scale=imgScale)
 
