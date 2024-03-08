@@ -411,15 +411,20 @@ class GEEApi():
     # ====================== Landcover ====================>
     # -------------------------------------------------------------------------
     def getLandCoverMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
-        classNames = ['evergreen', 'semi-evergreen', 'deciduous', 'mangrove', 'flooded forest','rubber', 'other plantations', 'rice', 'cropland', 'surface water', 'grassland', 'woodshrub', 'built-up area', 'village', 'other']
-        palette = ['267300', '38A800', '70A800', '00A884', 'B4D79E', 'AAFF00', 'F5F57A', 'FFFFBE', 'FFD37F', '004DA8', 'D7C29E', '89CD66', 'E600A9', 'A900E6', '6f6f6f']
+        # lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
+        # classNames = ['evergreen', 'semi-evergreen', 'deciduous', 'mangrove', 'flooded forest','rubber', 'other plantations', 'rice', 'cropland', 'surface water', 'grassland', 'woodshrub', 'built-up area', 'village', 'other']
+        # palette = ['267300', '38A800', '70A800', '00A884', 'B4D79E', 'AAFF00', 'F5F57A', 'FFFFBE', 'FFD37F', '004DA8', 'D7C29E', '89CD66', 'E600A9', 'A900E6', '6f6f6f']
+        # lcMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=str(len(classNames)-1), palette=palette))
+        lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
+        classNames = ['built-up area', 'mangrove', 'otherPlantation', 'water', 'shrub', 'rice', 'cropland', 'grass', 'evergreen', 'deciduous', 'wetland', 'rubber', 'floodedForest', 'semi-evergreen', 'village', 'others']
+        palette = ['E600A9', 'FFFF00', 'c49963', '004DA8', '89CD66', 'fefdbd', 'FFD37F', 'D7C29E', '267300', '71a405', '86d8dc', 'AAFF00', 'b3d59f', '38A800', 'A900E6', 'f0f8ff']
         lcMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=str(len(classNames)-1), palette=palette))
         return lcMap
     
     # -------------------------------------------------------------------------
     def getDownloadLandcoverMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
+        # lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
+        lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
         try:
             dnldURL = lcImage.getDownloadURL({
                 'name': 'LC'+year,
@@ -437,24 +442,44 @@ class GEEApi():
 
     # -------------------------------------------------------------------------
     def calLandcoverArea(self, series_start, series_end, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
+        # lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
+        # IC= GEEApi.LANDCOVER.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
+        # LANDCOVERCLASSES = [
+        #     {'name':'evergreen' ,'number': 0, 'color': '267300'},
+        #     {'name':'semi-evergreen' ,'number': 1, 'color': '38A800'},
+        #     {'name':'deciduous' ,'number': 2, 'color': '70A800'},
+        #     {'name':'mangrove' ,'number': 3, 'color': '00A884'},
+        #     {'name':'flooded forest' ,'number': 4, 'color': 'B4D79E'},
+        #     {'name':'rubber' ,'number': 5, 'color': 'AAFF00'},
+        #     {'name':'other plantations' ,'number': 6, 'color': 'F5F57A'},
+        #     {'name':'rice' ,'number': 7, 'color': 'FFFFBE'},
+        #     {'name':'cropland' ,'number': 8, 'color': 'FFD37F'},
+        #     {'name':'surface water' ,'number': 9, 'color': '004DA8'},
+        #     {'name':'grassland' ,'number': 10, 'color': 'D7C29E'},
+        #     {'name':'woodshrub' ,'number': 11, 'color': '89CD66'},
+        #     {'name':'built-up area' ,'number': 12, 'color': 'E600A9'},
+        #     {'name':'village' ,'number': 13, 'color': 'A900E6'},
+        #     {'name':'other' ,'number': 14, 'color': '6f6f6f'}
+        # ]
+        lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
         IC= GEEApi.LANDCOVER.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
         LANDCOVERCLASSES = [
-            {'name':'evergreen' ,'number': 0, 'color': '267300'},
-            {'name':'semi-evergreen' ,'number': 1, 'color': '38A800'},
-            {'name':'deciduous' ,'number': 2, 'color': '70A800'},
-            {'name':'mangrove' ,'number': 3, 'color': '00A884'},
-            {'name':'flooded forest' ,'number': 4, 'color': 'B4D79E'},
-            {'name':'rubber' ,'number': 5, 'color': 'AAFF00'},
-            {'name':'other plantations' ,'number': 6, 'color': 'F5F57A'},
-            {'name':'rice' ,'number': 7, 'color': 'FFFFBE'},
-            {'name':'cropland' ,'number': 8, 'color': 'FFD37F'},
-            {'name':'surface water' ,'number': 9, 'color': '004DA8'},
-            {'name':'grassland' ,'number': 10, 'color': 'D7C29E'},
-            {'name':'woodshrub' ,'number': 11, 'color': '89CD66'},
-            {'name':'built-up area' ,'number': 12, 'color': 'E600A9'},
-            {'name':'village' ,'number': 13, 'color': 'A900E6'},
-            {'name':'other' ,'number': 14, 'color': '6f6f6f'}
+            {'name': 'built-up area', 'number': 0, 'color': 'E600A9'},
+            {'name': 'mangrove', 'number': 1, 'color': 'FFFF00'},
+            {'name': 'otherPlantation', 'number': 2, 'color': 'c49963'},
+            {'name': 'water', 'number': 3, 'color': '004DA8'},
+            {'name': 'shrub', 'number': 4, 'color': '89CD66'},
+            {'name': 'rice', 'number': 5, 'color': 'fefdbd'},
+            {'name': 'cropland', 'number': 6, 'color': 'FFD37F'},
+            {'name': 'grass', 'number': 7, 'color': 'D7C29E'},
+            {'name': 'evergreen', 'number': 8, 'color': '267300'},
+            {'name': 'deciduous', 'number': 9, 'color': '71a405'},
+            {'name': 'wetland', 'number': 10, 'color': '86d8dc'},
+            {'name': 'rubber', 'number': 11, 'color': 'AAFF00'},
+            {'name': 'floodedForest', 'number': 12, 'color': 'b3d59f'},
+            {'name': 'semi-evergreen', 'number': 13, 'color': '38A800'},
+            {'name': 'village', 'number': 14, 'color': 'A900E6'},
+            {'name': 'others', 'number': 15, 'color': 'f0f8ff'}
         ]
 
         INDEX_CLASS = {}
@@ -1152,31 +1177,32 @@ class GEEApi():
         #     'palette': GEEApi.COLOR[year - start_year]
         # })
 
-        if area_type == "country":
-            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/cam_Metadata"
-            forestArea_fc = ee.FeatureCollection(ic)
-            forestArea = forestArea_fc.filter(ee.Filter.eq('NAME_ENGLI', area_id)).filter(ee.Filter.eq('year', year))
-            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+        # if area_type == "country":
+        #     ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/cam_Metadata"
+        #     forestArea_fc = ee.FeatureCollection(ic)
+        #     forestArea = forestArea_fc.filter(ee.Filter.eq('NAME_ENGLI', area_id)).filter(ee.Filter.eq('year', year))
+        #     areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
 
-        elif area_type == "province":
-            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/province_"+ str(year) +"Metadata"
-            forestArea_fc = ee.FeatureCollection(ic)
-            forestArea = forestArea_fc.filter(ee.Filter.eq('gid', int(area_id)))
-            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+        # elif area_type == "province":
+        #     ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/province_"+ str(year) +"Metadata"
+        #     forestArea_fc = ee.FeatureCollection(ic)
+        #     forestArea = forestArea_fc.filter(ee.Filter.eq('gid', int(area_id)))
+        #     areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
 
-        elif area_type == "district":
-            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/district_"+ str(year) +"Metadata"
-            forestArea_fc = ee.FeatureCollection(ic)
-            forestArea = forestArea_fc.filter(ee.Filter.eq('DIST_CODE', str(area_id)))
-            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+        # elif area_type == "district":
+        #     ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/district_"+ str(year) +"Metadata"
+        #     forestArea_fc = ee.FeatureCollection(ic)
+        #     forestArea = forestArea_fc.filter(ee.Filter.eq('DIST_CODE', str(area_id)))
+        #     areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
 
-        elif area_type == "protected_area":
-            ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/protected_"+ str(year) +"Metadata"
-            forestArea_fc = ee.FeatureCollection(ic)
-            forestArea = forestArea_fc.filter(ee.Filter.eq('map_id', str(area_id)))
-            areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
+        # elif area_type == "protected_area":
+        #     ic = "projects/servir-mekong/Cambodia-Dashboard-tool/ForestArea/protected_"+ str(year) +"Metadata"
+        #     forestArea_fc = ee.FeatureCollection(ic)
+        #     forestArea = forestArea_fc.filter(ee.Filter.eq('map_id', str(area_id)))
+        #     areaHA = forestArea.aggregate_array("areaHect").get(0).getInfo()
 
-        elif area_type == "draw" or area_type == "upload":
+        # el
+        if area_type == "draw" or area_type == "upload":
             reducer = image.gt(0).multiply(self.scale).multiply(self.scale).reduceRegion(
                 reducer = ee.Reducer.sum(),
                 geometry = self.geometry,
@@ -1210,7 +1236,9 @@ class GEEApi():
                 image.visualize(
                     min=str(tree_canopy_definition), 
                     max='100', 
-                    palette=[GEEApi.COLOR[year - start_year]]))
+                    palette=["#138D75"])
+                    # palette=[GEEApi.COLOR[year - start_year]])
+                )
             return data
         else:
             

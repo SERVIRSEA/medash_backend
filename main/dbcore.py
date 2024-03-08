@@ -278,6 +278,48 @@ class DBData:
 
         return transformed_data
 
+    def get_report_stat(self, report_type, start_year, end_year):
+        try:
+            if report_type == "forest-monitoring":
+                # Use a dictionary to map area types to model classes and serializers
+                area_type_mapping = {
+                    'country': {'model': ForestCoverNational, 'serializer': ForestCoverNationalSerializer, 'field_name': 'country'},
+                    'province': {'model': ForestCoverProvince, 'serializer': ForestCoverProvinceSerializer, 'field_name': 'gid'},
+                    'district': {'model': ForestCoverDistrict, 'serializer': ForestCoverDistrictSerializer, 'field_name': 'dist_code'},
+                    'protected_area': {'model': ForestCoverProtectedArea, 'serializer': ForestCoverProtectedAreaSerializer, 'field_name': 'pid'},
+                }
+            else:
+                pass
+
+            # Retrieve the corresponding model class and serializer based on area type
+            area_info = area_type_mapping.get(self.area_type)
+            if area_info is None:
+                raise ValueError(f"Invalid area type: {self.area_type}")
+
+            # Filter data based on the chosen model and area_id
+            db_model = area_info['model']
+            
+            if db_model:
+                if self.area_type == 'country':
+                    start_year_data = db_model.objects.filter(year=int(start_year))
+                    end_year_data = db_model.objects.filter(year=int(end_year))
+                else:
+                    field_name = area_info['field_name']
+                    start_year_data = db_model.objects.filter(
+                        **{field_name: self.area_id},
+                        year=int(start_year)  
+                    )
+                    end_year_data = db_model.objects.filter(
+                        **{field_name: self.area_id},
+                        year=int(end_year) 
+                    )
+                    
+                
+
+        except Exception as e:
+            transformed_data = {'error': str(e)}
+
+
 
 
 
