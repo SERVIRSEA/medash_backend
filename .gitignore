@@ -1,0 +1,5 @@
+credentials/
+medash/production_settings.py
+medash/settings.py
+medash/__pycache__/
+medash/__init__.py
