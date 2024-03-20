@@ -36,6 +36,9 @@ class GEEApi():
     SEASONAL_PRECIPITATION = settings.SEASONAL_PRECIPITATION
     SEASONAL_TEMPERATURE = settings.SEASONAL_TEMPERATURE
 
+    COMBINED_DEFORESTATION_ALERT = settings.COMBINED_DEFORESTATION_ALERT
+
+
     COLOR = ['A8D9C6','B0DAB2','BFE1C9','AAD7A0','C3DE98','D5E59E','93D2BF','95CF9C','A4D7B8','9BD291','B1D78A','C9E08E','5CC199','77C78C','37B54A','126039','146232','0F8040','279445','449644','59A044','0E361E','236832','335024', '36461F']
     # COLORFORESTALERT = ['943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1','943126', 'B03A2E', 'CB4335', 'E74C3C', 'F1948A', 'F5B7B1']
     COLORFORESTALERT = [
@@ -1758,3 +1761,99 @@ class GEEApi():
                 'min': min_value,
                 'max': max_value
             }
+    
+    
+    # ====================== Deforestation Alert ====================>
+    def get_deforestation_alert_map(self, start_date, end_date, bandName, download="False"):
+        alertCollection =  ee.ImageCollection(self.COMBINED_DEFORESTATION_ALERT)     
+
+        # Filter Date
+        alertCollection = alertCollection.sort('system:time_start', False).filterDate(start_date, end_date)
+
+        # select band name and call sum() to combine all images in the collection
+        alertImage = alertCollection.select(bandName).sum()
+
+        # convert to binary image (0=none deforestation, 1=alert)
+        alertImg = alertImage.neq(0).selfMask()
+
+        # clip the image with roi 
+        alertImg = alertImg.clip(self.geometry)
+
+
+        if download == "True":
+            try:
+                imgScale = 100
+                proj = ee.Projection('EPSG:4326')
+                alertImg = alertImg.reproject(crs=proj,scale=imgScale)
+                dnldURL = alertImg.getDownloadURL({
+                        'name': f'{bandName}_{start_date}_{end_date}',
+                        'scale': imgScale,
+                        'crs': 'EPSG:4326',
+                        'region': self.geometry
+                    })
+                return {
+                    'downloadURL': dnldURL,
+                    'success': 'success'
+                        }
+            except Exception as e:
+                return {
+                    'return': 'Not success, Your chosen area exceeds the maximum size allowed for download. To proceed, please select a smaller region such as a specific province or district. You can specify this by setting area_type to province and using area_id, such as area_id=16, for example.'
+                }
+        else:
+            # Apply conditional coloring based on the parameter
+            vis_params = {'palette': ["C70039"]}
+
+            map_url = self.getTileLayerUrl(alertImg.visualize(**vis_params))
+
+            return {
+                'geeURL': map_url
+            }
+        
+    # ====================== Deforestation Alert ====================>
+    def get_doy_glad_deforestation_alert_map(self, year, doy, download="False"):
+        alertCollection =  ee.ImageCollection(self.COMBINED_DEFORESTATION_ALERT)     
+        
+        start_date = str(year)+'-01-01'
+        end_date = str(year)+'-12-31'
+
+        # Filter Date
+        alertCollection = alertCollection.sort('system:time_start', False).filterDate(start_date, end_date)
+
+        # select band name and call max() to combine all images in the collection
+        gladAlertImg = alertCollection.select('glad').max()
+
+        alertImg = gladAlertImg.eq(int(doy)).selfMask()
+
+        # clip the image with roi 
+        alertImg = alertImg.clip(self.geometry)
+
+        if download == "True":
+            try:
+                imgScale = 100
+                proj = ee.Projection('EPSG:4326')
+                alertImg = alertImg.reproject(crs=proj,scale=imgScale)
+                dnldURL = alertImg.getDownloadURL({
+                        'name': f'glad_alert_doy{doy}',
+                        'scale': imgScale,
+                        'crs': 'EPSG:4326',
+                        'region': self.geometry
+                    })
+                return {
+                    'downloadURL': dnldURL,
+                    'success': 'success'
+                        }
+            except Exception as e:
+                return {
+                    'return': 'Not success. Your chosen area exceeds the maximum size allowed for download. To proceed, please select a smaller region such as a specific province or district. You can specify this by setting area_type to province and using area_id, such as area_id=16, for example.'
+                }
+        else:
+            # Apply conditional coloring based on the parameter
+            vis_params = {'min': 0, 'max': 1, 'palette': ["C70039"]}
+
+            map_url = self.getTileLayerUrl(alertImg.visualize(**vis_params))
+
+            return {
+                'geeURL': map_url
+            }
+    
+   

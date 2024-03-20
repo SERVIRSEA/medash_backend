@@ -58,7 +58,13 @@ def api(request):
             'download-forest-loss-map',
             'download-forest-extent-map',
             'download-drought-index-map',
-            'download-weather-map'
+            'download-weather-map',
+            'get-glad-deforestation-alert-map',
+            'get-combined-deforestation-alert-map',
+            'get-doy-glad-deforestation-alert-map',
+            'download-glad-deforestation-alert-map',
+            'download-combined-deforestation-alert-map',
+            'download-doy-glad-deforestation-alert-map'    
         ]
 
         if action in request_methods:
@@ -74,6 +80,9 @@ def api(request):
             land_cover_type =  request.query_params.get('type', '')
             weather_param = request.query_params.get('weather_param', '')
             weather_type = request.query_params.get('weather_type', '')
+            start_date = request.query_params.get('start_date', '')
+            end_date = request.query_params.get('end_date', '')
+            doy = request.query_params.get('doy', '')
             
             core = GEEApi(area_type, area_id)
             dbcore = DBData(area_type, area_id)
@@ -395,5 +404,55 @@ def api(request):
             elif action == 'download-weather-map':
                 data = core.get_weather_map(weather_param, weather_type, download="True")
                 return Response(data)
+        
+            #=============== Combined Deforestation Alert ========================>
+            elif action == 'get-glad-deforestation-alert-map':
+                data = core.get_deforestation_alert_map(start_date, end_date, "glad", download="False")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-combined-deforestation-alert-map':
+                data = core.get_deforestation_alert_map(start_date, end_date, "combinedAlerts", download="False")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'get-doy-glad-deforestation-alert-map':
+                data = core.get_doy_glad_deforestation_alert_map(year=year, doy=doy, download="False")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'download-glad-deforestation-alert-map':
+                data = core.get_deforestation_alert_map(start_date, end_date, "glad", download="True")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'download-combined-deforestation-alert-map':
+                data = core.get_deforestation_alert_map(start_date, end_date, "combinedAlerts", download="True")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            elif action == 'download-doy-glad-deforestation-alert-map':
+                data = core.get_doy_glad_deforestation_alert_map(year=year, doy=doy, download="True")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
 
     return Response({'error': 'Bad request, action parameter is required or not valid.'}, status=status.HTTP_400_BAD_REQUEST)
