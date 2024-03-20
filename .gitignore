@@ -1,6 +1,7 @@
 credentials/
 
 medash/production_settings.py
+medash/__pycache__/
 
 main/__pycache__/
 main/migrations/
