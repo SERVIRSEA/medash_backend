@@ -190,7 +190,7 @@ def api(request):
                 
             elif action == 'get-landcover-rubber-line-data':
                 if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
-                    data = dbcore.get_landcover_stat(studyLow, studyHigh, landcover_type='rice')
+                    data = dbcore.get_landcover_stat(studyLow, studyHigh, landcover_type='rubber')
                 else:
                     data = core.getLandcoverRubberArea(studyLow, studyHigh)
 
