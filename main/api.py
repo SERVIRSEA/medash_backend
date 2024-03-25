@@ -64,7 +64,9 @@ def api(request):
             'get-doy-glad-deforestation-alert-map',
             'download-glad-deforestation-alert-map',
             'download-combined-deforestation-alert-map',
-            'download-doy-glad-deforestation-alert-map'    
+            'download-doy-glad-deforestation-alert-map',
+            'get-sar-biweekly-alert',
+            'download-sar-biweekly-alert'    
         ]
 
         if action in request_methods:
@@ -454,5 +456,21 @@ def api(request):
                 else:
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             
+            elif action == 'get-sar-biweekly-alert':
+                data = core.get_sar_biweekly_alert_map(year=year, download="False")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+
+            elif action == 'download-sar-biweekly-alert':
+                data = core.get_sar_biweekly_alert_map(year=year, download="True")
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+                 
 
     return Response({'error': 'Bad request, action parameter is required or not valid.'}, status=status.HTTP_400_BAD_REQUEST)

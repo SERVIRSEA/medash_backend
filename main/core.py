@@ -18,6 +18,7 @@ class GEEApi():
     FIRMS_BURNED_AREA = ee.ImageCollection(settings.FIRMS_BURNED_AREA)
     LANDCOVER = ee.ImageCollection(settings.LANDCOVER)
     SAR_ALERT = settings.SAR_ALERT
+    SAR_BIWEEKLY_ALERT = settings.SAR_BIWEEKLY_ALERT
     
     NDVI = settings.NDVI
     VHI = settings.VHI
@@ -418,7 +419,11 @@ class GEEApi():
         # classNames = ['evergreen', 'semi-evergreen', 'deciduous', 'mangrove', 'flooded forest','rubber', 'other plantations', 'rice', 'cropland', 'surface water', 'grassland', 'woodshrub', 'built-up area', 'village', 'other']
         # palette = ['267300', '38A800', '70A800', '00A884', 'B4D79E', 'AAFF00', 'F5F57A', 'FFFFBE', 'FFD37F', '004DA8', 'D7C29E', '89CD66', 'E600A9', 'A900E6', '6f6f6f']
         # lcMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=str(len(classNames)-1), palette=palette))
-        lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        lcImage = GEEApi.LANDCOVER.filterDate(series_start, series_end).first().clip(self.geometry)
+        
+        # lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
         classNames = ['built-up area', 'mangrove', 'otherPlantation', 'water', 'shrub', 'rice', 'cropland', 'grass', 'evergreen', 'deciduous', 'wetland', 'rubber', 'floodedForest', 'semi-evergreen', 'village', 'others']
         palette = ['E600A9', 'FFFF00', 'c49963', '004DA8', '89CD66', 'fefdbd', 'FFD37F', 'D7C29E', '267300', '71a405', '86d8dc', 'AAFF00', 'b3d59f', '38A800', 'A900E6', 'f0f8ff']
         lcMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=str(len(classNames)-1), palette=palette))
@@ -427,7 +432,10 @@ class GEEApi():
     # -------------------------------------------------------------------------
     def getDownloadLandcoverMap(self, year):
         # lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).clip(self.geometry)
-        lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        lcImage = GEEApi.LANDCOVER.filterDate(series_start, series_end).first().clip(self.geometry)
+        # lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
         try:
             dnldURL = lcImage.getDownloadURL({
                 'name': 'LC'+year,
@@ -464,8 +472,10 @@ class GEEApi():
         #     {'name':'village' ,'number': 13, 'color': 'A900E6'},
         #     {'name':'other' ,'number': 14, 'color': '6f6f6f'}
         # ]
-        lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
-        IC= GEEApi.LANDCOVER.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
+
+        lcImage = GEEApi.LANDCOVER.filterDate(series_start, series_end).clip(self.geometry)
+        # lcImage = ee.Image(f"projects/servir-mekong/RLCMSV2/lc_cambodia_logical/lc_cambodia_logical_{year}").clip(self.geometry)
+        # IC= GEEApi.LANDCOVER.filterBounds(self.geometry).sort('system:time_start', False).filterDate(series_start, series_end)
         LANDCOVERCLASSES = [
             {'name': 'built-up area', 'number': 0, 'color': 'E600A9'},
             {'name': 'mangrove', 'number': 1, 'color': 'FFFF00'},
@@ -1797,7 +1807,7 @@ class GEEApi():
                         }
             except Exception as e:
                 return {
-                    'return': 'Not success, Your chosen area exceeds the maximum size allowed for download. To proceed, please select a smaller region such as a specific province or district. You can specify this by setting area_type to province and using area_id, such as area_id=16, for example.'
+                    'return': 'Not success, Your chosen area exceeds the maximum size allowed for download. To proceed, please select a smaller region such as a specific province or district. You can specify this by setting area_type to province or district and using area_id, such as area_id=5, for example.'
                 }
         else:
             # Apply conditional coloring based on the parameter
@@ -1844,7 +1854,7 @@ class GEEApi():
                         }
             except Exception as e:
                 return {
-                    'return': 'Not success. Your chosen area exceeds the maximum size allowed for download. To proceed, please select a smaller region such as a specific province or district. You can specify this by setting area_type to province and using area_id, such as area_id=16, for example.'
+                    'return': 'Not success. Your chosen area exceeds the maximum size allowed for download. To proceed, please select a smaller region such as a specific province or district. You can specify this by setting area_type to province or district and using area_id, such as area_id=3, for example.'
                 }
         else:
             # Apply conditional coloring based on the parameter
@@ -1856,4 +1866,47 @@ class GEEApi():
                 'geeURL': map_url
             }
     
+    # ====================== SAR Bi weelly alert ====================>
+    def get_sar_biweekly_alert_map(self, year, download="False"):
+        alertCollection =  ee.ImageCollection(self.SAR_BIWEEKLY_ALERT)     
+        
+        # Filter Date
+        alertCollection = alertCollection.filter(ee.Filter.calendarRange(int(year), int(year), 'year'))
+
+        # select band name and call max() to combine all images in the collection
+        alertImg = alertCollection.max().gt(0)
+
+        # alertImg = alertImg.selfMask()
+
+        # clip the image with roi 
+        alertImg = alertImg.clip(self.geometry)
+
+        if download == "True":
+            try:
+                imgScale = 100
+                proj = ee.Projection('EPSG:4326')
+                alertImg = alertImg.reproject(crs=proj,scale=imgScale)
+                dnldURL = alertImg.getDownloadURL({
+                        'name': f'sar_biweekly_alert_{str(year)}',
+                        'scale': imgScale,
+                        'crs': 'EPSG:4326',
+                        'region': self.geometry
+                    })
+                return {
+                    'downloadURL': dnldURL,
+                    'success': 'success'
+                        }
+            except Exception as e:
+                return {
+                    'return': 'Not success. Your chosen area exceeds the maximum size allowed for download. To proceed, please select a smaller region such as a specific province or district. You can specify this by setting area_type to province or district and using area_id, such as area_id=3, for example.'
+                }
+        else:
+            # Apply conditional coloring based on the parameter
+            vis_params = {'min': 0, 'max': 1, 'palette': ["C70039"]}
+
+            map_url = self.getTileLayerUrl(alertImg.visualize(**vis_params))
+
+            return {
+                'geeURL': map_url
+            }
    
