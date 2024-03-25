@@ -436,7 +436,7 @@ def api(request):
                 data = core.get_deforestation_alert_map(start_date, end_date, "glad", download="True")
 
                 if data:
-                    return Response(data)
+                    return Response(data) 
                 else:
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             

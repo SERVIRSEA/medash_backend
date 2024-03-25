@@ -533,7 +533,7 @@ class GEEApi():
     def getLandCoverRiceMap(self, year):
         lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(7).clip(self.geometry).selfMask()
         palette = ['FFFFFF','FFFF00']
-        lcRiceMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=1, palette=palette))
+        lcRiceMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=1, palette=palette)) 
         return lcRiceMap
 
     def downloadLandcoverRiceMap(self, year):
