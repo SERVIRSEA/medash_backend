@@ -66,7 +66,8 @@ def api(request):
             'download-combined-deforestation-alert-map',
             'download-doy-glad-deforestation-alert-map',
             'get-sar-biweekly-alert',
-            'download-sar-biweekly-alert'    
+            'download-sar-biweekly-alert',
+            'get-forestchange-chart'    
         ]
 
         if action in request_methods:
@@ -406,6 +407,18 @@ def api(request):
             elif action == 'download-weather-map':
                 data = core.get_weather_map(weather_param, weather_type, download="True")
                 return Response(data)
+            
+            #=============== Forest Changes  ========================>
+            elif action == 'get-forestchange-chart':
+                if area_type == 'country' or area_type == 'province' or area_type == 'district' or area_type == 'protected_area':
+                    data = dbcore.get_forestchanges_stat(studyLow, studyHigh)
+                else:
+                    data = core.getLandcoverArea(studyLow, studyHigh)
+
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
         
             #=============== Combined Deforestation Alert ========================>
             elif action == 'get-glad-deforestation-alert-map':
@@ -436,7 +449,7 @@ def api(request):
                 data = core.get_deforestation_alert_map(start_date, end_date, "glad", download="True")
 
                 if data:
-                    return Response(data) 
+                    return Response(data)
                 else:
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
             

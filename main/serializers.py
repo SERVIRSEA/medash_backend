@@ -100,3 +100,39 @@ class FireHotspotProtectedAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FireHotspotProtectedArea
         fields = ['year', 'fireNum']
+
+class ForestChangesCountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForestChagesCountry
+        fields = ['year', 'built', 'mangrove', 'otherPlantation','water', 
+                  'shrub', 'rice', 'cropland', 'grass',
+                  'evergreen', 'deciduous', 'wetland', 'rubber', 
+                  'floodedForest', 'semievergreen', 'village', 'others'
+                  ]
+
+class ForestChangesProvinceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForestChagesProvince
+        fields = ['year', 'built', 'mangrove', 'otherPlantation','water', 
+                  'shrub', 'rice', 'cropland', 'grass',
+                  'evergreen', 'deciduous', 'wetland', 'rubber', 
+                  'floodedForest', 'semievergreen', 'village', 'others'
+                  ]
+
+class ForestChangesDistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForestChagesDistrict
+        fields = ['year', 'built', 'mangrove', 'otherPlantation','water', 
+                  'shrub', 'rice', 'cropland', 'grass',
+                  'evergreen', 'deciduous', 'wetland', 'rubber', 
+                  'floodedForest', 'semievergreen', 'village', 'others'
+                  ]
+
+class ForestChangesProtectedAreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForestChagesProtectedArea
+        fields = ['year', 'builtup', 'mangrove', 'otherPlant','water', 
+                  'shrub', 'rice', 'cropland', 'grass',
+                  'evergreen', 'deciduous', 'wetland', 'rubber', 
+                  'floodedForest', 'semievergreen', 'village', 'others'
+                  ]

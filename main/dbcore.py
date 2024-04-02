@@ -25,7 +25,11 @@ from .serializers import (
     FireHotspotNationalSerializer,
     FireHotspotProvinceSerializer,
     FireHotspotDistrictSerializer,
-    FireHotspotProtectedAreaSerializer
+    FireHotspotProtectedAreaSerializer,
+    ForestChangesCountrySerializer,
+    ForestChangesProvinceSerializer,
+    ForestChangesDistrictSerializer,
+    ForestChangesProtectedAreaSerializer
 )
 
 class DBData:
@@ -313,13 +317,57 @@ class DBData:
                         **{field_name: self.area_id},
                         year=int(end_year) 
                     )
-                    
-                
-
         except Exception as e:
             transformed_data = {'error': str(e)}
 
+    def get_forestchanges_stat(self, start_year, end_year):
+            try:
+                # Use a dictionary to map area types to model classes and serializers
+                area_type_mapping = {
+                    'country': {'model': ForestChagesCountry, 'serializer': ForestChangesCountrySerializer, 'field_name': 'country'},
+                    'province': {'model': ForestChagesProvince, 'serializer': ForestChangesProvinceSerializer, 'field_name': 'gid'},
+                    'district': {'model': ForestChagesDistrict, 'serializer': ForestChangesDistrictSerializer, 'field_name': 'dist_code'},
+                    'protected_area': {'model': ForestChagesProtectedArea, 'serializer': ForestChangesProtectedAreaSerializer, 'field_name': 'pid'},
+                }
 
+                # Retrieve the corresponding model class and serializer based on area type
+                area_info = area_type_mapping.get(self.area_type)
+                if area_info is None:
+                    raise ValueError(f"Invalid area type: {self.area_type}")
 
+                # Filter data based on the chosen model and area_id
+                db_model = area_info['model']
+                
+                if db_model:
+                    if self.area_type == 'country':
+                        print()
+                        db_data = db_model.objects.filter(
+                            year__range=(int(start_year), int(end_year))
+                        )
+                    else:
+                        field_name = area_info['field_name']
+                        db_data = db_model.objects.filter(
+                            **{field_name: self.area_id},
+                            year__range=(int(start_year), int(end_year))
+                        )
+                    # Serialize data using the appropriate serializer
+                    serializer_class = area_info['serializer']
+                    serializer = serializer_class(db_data, many=True)
+                    data = serializer.data
+                    # Transform the data into the desired format
+                    # transformed_data = {str(item.pop("year")): item for item in data}
+                    transformed_data = {
+                        str(item["year"]): {
+                            key: float(value) for key, value in item.items() if key != 'year'
+                        } for item in data
+                    }
+                    
+                    # print(transformed_data)
+                else:
+                    transformed_data = {'error': f"No model defined for area type: {self.area_type}"}
 
+            except Exception as e:
+                transformed_data = {'error': str(e)}
+
+            return transformed_data
 

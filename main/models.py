@@ -296,3 +296,111 @@ class ForestCoverProtectedArea(models.Model):
 
     def __str__(self):
         return self.protected_area
+
+class ForestChagesCountry(models.Model):
+    country = models.CharField(max_length=100, null=True, blank=True)
+    year = models.IntegerField()
+    built = models.DecimalField(max_digits=10, decimal_places=2)
+    mangrove = models.DecimalField(max_digits=10, decimal_places=2)
+    otherPlantation = models.DecimalField(max_digits=10, decimal_places=2)
+    water = models.DecimalField(max_digits=10, decimal_places=2)
+    shrub = models.DecimalField(max_digits=10, decimal_places=2)
+    rice = models.DecimalField(max_digits=10, decimal_places=2)
+    cropland = models.DecimalField(max_digits=10, decimal_places=2)
+    grass = models.DecimalField(max_digits=10, decimal_places=2)
+    evergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    deciduous = models.DecimalField(max_digits=10, decimal_places=2)
+    wetland = models.DecimalField(max_digits=10, decimal_places=2)
+    rubber = models.DecimalField(max_digits=10, decimal_places=2)
+    floodedForest = models.DecimalField(max_digits=10, decimal_places=2)
+    semievergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    village = models.DecimalField(max_digits=10, decimal_places=2)
+    others = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Forest Changes country lavel'
+
+    def __str__(self):
+        return self.country
+
+class ForestChagesProvince(models.Model):
+    province = models.CharField(max_length=100, null=True, blank=True)
+    gid = models.IntegerField()
+    year = models.IntegerField()
+    built = models.DecimalField(max_digits=10, decimal_places=2)
+    mangrove = models.DecimalField(max_digits=10, decimal_places=2)
+    otherPlantation = models.DecimalField(max_digits=10, decimal_places=2)
+    water = models.DecimalField(max_digits=10, decimal_places=2)
+    shrub = models.DecimalField(max_digits=10, decimal_places=2)
+    rice = models.DecimalField(max_digits=10, decimal_places=2)
+    cropland = models.DecimalField(max_digits=10, decimal_places=2)
+    grass = models.DecimalField(max_digits=10, decimal_places=2)
+    evergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    deciduous = models.DecimalField(max_digits=10, decimal_places=2)
+    wetland = models.DecimalField(max_digits=10, decimal_places=2)
+    rubber = models.DecimalField(max_digits=10, decimal_places=2)
+    floodedForest = models.DecimalField(max_digits=10, decimal_places=2)
+    semievergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    village = models.DecimalField(max_digits=10, decimal_places=2)
+    others = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Forest changes province level'
+
+    def __str__(self):
+        return self.province
+    
+class ForestChagesDistrict(models.Model):
+    district = models.CharField(max_length=100, null=True, blank=True)
+    dist_code = models.IntegerField()
+    year = models.IntegerField()
+    built = models.DecimalField(max_digits=10, decimal_places=2)
+    mangrove = models.DecimalField(max_digits=10, decimal_places=2)
+    otherPlantation = models.DecimalField(max_digits=10, decimal_places=2)
+    water = models.DecimalField(max_digits=10, decimal_places=2)
+    shrub = models.DecimalField(max_digits=10, decimal_places=2)
+    rice = models.DecimalField(max_digits=10, decimal_places=2)
+    cropland = models.DecimalField(max_digits=10, decimal_places=2)
+    grass = models.DecimalField(max_digits=10, decimal_places=2)
+    evergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    deciduous = models.DecimalField(max_digits=10, decimal_places=2)
+    wetland = models.DecimalField(max_digits=10, decimal_places=2)
+    rubber = models.DecimalField(max_digits=10, decimal_places=2)
+    floodedForest = models.DecimalField(max_digits=10, decimal_places=2)
+    semievergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    village = models.DecimalField(max_digits=10, decimal_places=2)
+    others = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Forest changes district level'
+
+    def __str__(self):
+        return self.district
+    
+
+class ForestChagesProtectedArea(models.Model):
+    protected_area = models.CharField(max_length=100, null=True, blank=True)
+    pid = models.CharField(max_length=50)
+    year = models.IntegerField()
+    built = models.DecimalField(max_digits=10, decimal_places=2)
+    mangrove = models.DecimalField(max_digits=10, decimal_places=2)
+    otherPlantation = models.DecimalField(max_digits=10, decimal_places=2)
+    water = models.DecimalField(max_digits=10, decimal_places=2)
+    shrub = models.DecimalField(max_digits=10, decimal_places=2)
+    rice = models.DecimalField(max_digits=10, decimal_places=2)
+    cropland = models.DecimalField(max_digits=10, decimal_places=2)
+    grass = models.DecimalField(max_digits=10, decimal_places=2)
+    evergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    deciduous = models.DecimalField(max_digits=10, decimal_places=2)
+    wetland = models.DecimalField(max_digits=10, decimal_places=2)
+    rubber = models.DecimalField(max_digits=10, decimal_places=2)
+    floodedForest = models.DecimalField(max_digits=10, decimal_places=2)
+    semievergreen = models.DecimalField(max_digits=10, decimal_places=2)
+    village = models.DecimalField(max_digits=10, decimal_places=2)
+    others = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = 'Forest changes on protected area'
+
+    def __str__(self):
+        return self.protected_area
