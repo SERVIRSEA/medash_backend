@@ -531,13 +531,17 @@ class GEEApi():
     # ====================== Landcover Rice ====================>
     # -------------------------------------------------------------------------
     def getLandCoverRiceMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(7).clip(self.geometry).selfMask()
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        lcImage = GEEApi.LANDCOVER.filterDate(series_start, series_end).first().eq(5).clip(self.geometry).selfMask()
         palette = ['FFFFFF','FFFF00']
         lcRiceMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=1, palette=palette))
         return lcRiceMap
 
     def downloadLandcoverRiceMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(7).clip(self.geometry)
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        lcImage = GEEApi.LANDCOVER.filterDate(series_start, series_end).first().eq(5).clip(self.geometry).selfMask()
         try:
             dnldURL = lcImage.getDownloadURL({
                 'name': 'LCRICE'+year,
@@ -585,13 +589,17 @@ class GEEApi():
     # ====================== Landcover Rubber ====================>
     # -------------------------------------------------------------------------
     def getLandCoverRubberMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(5).clip(self.geometry).selfMask()
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        lcImage = GEEApi.LANDCOVER.filterDate(series_start, series_end).first().eq(11).clip(self.geometry).selfMask()
         palette = ['FFFFFF','AAFF00']
         lcRubberMap = self.getTileLayerUrl(lcImage.visualize(min=0, max=1, palette=palette))
         return lcRubberMap
 
     def downloadLandcoverRubberMap(self, year):
-        lcImage = ee.Image("projects/cemis-camp/assets/landcover/lcv4/"+str(year)).eq(5).clip(self.geometry)
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        lcImage = GEEApi.LANDCOVER.filterDate(series_start, series_end).first().eq(11).clip(self.geometry).selfMask()
         try:
             dnldURL = lcImage.getDownloadURL({
                 'name': 'LCRUBBER'+year,
@@ -675,15 +683,14 @@ class GEEApi():
         }
 
     def filter_landcover(self, year, lcType):
-        band_mapping = {'rice': 7, 'rubber': 5}
-
+        band_mapping = {'rice': 5, 'rubber': 11}
         band_number = band_mapping.get(lcType)
-        
         if band_number is None:
             raise ValueError("Invalid land cover type")
 
-        image = ee.Image("projects/cemis-camp/assets/landcover/lcv4/" + str(year)).clip(self.geometry)
-
+        series_start = str(year) + '-01-01'
+        series_end = str(year) + '-12-31'
+        image = GEEApi.LANDCOVER.filterDate(series_start, series_end).first().clip(self.geometry)
         band_names = image.bandNames()
         if 'lc' in band_names.getInfo():
             image = image.select(['lc'], [lcType])
@@ -739,16 +746,19 @@ class GEEApi():
             image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2022V4')
             image = image.select("landclass").clip(self.geometry).toInt16()
             binary_image = image.rename(['binary']).selfMask()
+        elif year == 2023:
+            image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2023V4')
+            image = image.select("landclass").clip(self.geometry).toInt16()
+            binary_image = image.rename(['binary']).selfMask()
         else: 
             series_start = str(year) + '-01-01'
             series_end = str(year) + '-12-31'
             SARIC = ee.ImageCollection(GEEApi.SAR_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
-            # image = ee.Image(GEEApi.SAR_ALERT+"/"+"alert_"+str(year))
             image = SARIC.sort('system:time_start', False).first()
             image = image.select("landclass").clip(self.geometry).toInt16()
             binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
         colorIndex = self.getColorIndex(year)
-        colorMap = GEEApi.COLORSARALERT[colorIndex]
+        colorMap = 'fba004' #GEEApi.COLORSARALERT[colorIndex]
         sarAlertMap = self.getTileLayerUrl(binary_image.visualize(min=0, max=1, palette=colorMap))
         return sarAlertMap
 

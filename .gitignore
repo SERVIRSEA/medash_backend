@@ -1,7 +1,11 @@
 credentials/
+.DS_Store
+static/
 
 medash/production_settings.py
-medash/__pycache__/
+medash/__pycache__/*
 
 main/__pycache__/
 main/migrations/
+main/__pycache__/*
+main/migrations/*
