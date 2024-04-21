@@ -787,25 +787,13 @@ class GEEApi():
 
     # -------------------------------------------------------------------------
     def downloadSARAlertMap(self, year):
-        year = int(year)
-        if year == 2021:
-            image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2021V4')
-            image = image.select("landclass").clip(self.geometry).toInt16()
-            binary_image = image.rename(['binary']).selfMask()
-        elif year == 2022:
-            image = ee.Image('projects/cemis-camp/assets/sarAlert/alert_2022V4')
-            image = image.select("landclass").clip(self.geometry).toInt16()
-            binary_image = image.rename(['binary']).selfMask()
-        else: 
-            series_start = str(year) + '-01-01'
-            series_end = str(year) + '-12-31'
-            SARIC = ee.ImageCollection(GEEApi.SAR_ALERT).filterBounds(self.geometry).filterDate(series_start, series_end)
-            # image = ee.Image(GEEApi.SAR_ALERT+"/"+"alert_"+str(year))
-            image = SARIC.sort('system:time_start', False).first()
-            image = image.select("landclass").clip(self.geometry).toInt16()
-            binary_image = image.neq(0).rename(['binary']).multiply(1).toInt16().selfMask()
-        
+        assetID = f'projects/cemis-camp/assets/sarAlert/alert_{str(year)}V4'
+        image = ee.Image(assetID)
+        image = image.select("landclass").clip(self.geometry).toInt16()
+        binary_image = image.rename(['binary']).selfMask()
+
         try:
+            print('download sar')
             dnldURL = binary_image.getDownloadURL({
                     'name': 'SARAlert'+str(year),
                     'scale': 100,
