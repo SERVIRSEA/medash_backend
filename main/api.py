@@ -11,15 +11,17 @@ from rest_framework import status
 from .core import GEEApi
 from .dbcore import DBData
 from .authentication import APIKeyAuthentication
+from .models import DownloadRequest
 
 @csrf_exempt 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @authentication_classes([APIKeyAuthentication])
 @permission_classes([IsAuthenticated])
 # @permission_classes([AllowAny])
 def api(request):
-    action = request.query_params.get('action', '')
-
+    # action = request.query_params.get('action', '')
+    action = request.query_params.get('action', '') if request.method == 'GET' else request.data.get('action', '')
+    
     if action:
         request_methods = [
             'get-evi-map',
@@ -67,7 +69,8 @@ def api(request):
             'download-doy-glad-deforestation-alert-map',
             'get-sar-biweekly-alert',
             'download-sar-biweekly-alert',
-            'get-forestchange-chart'    
+            'get-forestchange-chart',
+            'post-download-form-data'    
         ]
 
         if action in request_methods:
@@ -90,9 +93,66 @@ def api(request):
             core = GEEApi(area_type, area_id)
             dbcore = DBData(area_type, area_id)
 
-
             tree_canopy_definition = 10
             tree_height_definition = 5 
+
+            def get_download_link(year):
+                # Dictionary containing download links mapped by year
+                file_links_by_year = {
+                    2000: 'https://drive.google.com/file/d/1ZmRlAY94Y1h7pAZkrpmBatkfiFCIC5vY/view?usp=drive_link',
+                    2001: 'https://drive.google.com/file/d/19LzhKVDHr3W51CyT8BUteqn0BThRD8IJ/view?usp=drive_link',
+                    2002: 'https://drive.google.com/file/d/1V_rRYwYGlAOnkOIj2E3u2TNgejhuXI7u/view?usp=drive_link',
+                    2003: 'https://drive.google.com/file/d/1D9MDnLNZK01OEyVx3VcTAyRlw4e02hwy/view?usp=drive_link',
+                    2004: 'https://drive.google.com/file/d/1QVRY8Uv7_FAopkZvjDlMdh7ffE1fMNSm/view?usp=drive_link',
+                    2005: 'https://drive.google.com/file/d/1azZ1BfSOCmDDn0QrT6RBG6ugSB24kH_G/view?usp=drive_link',
+                    2006: 'https://drive.google.com/file/d/1l20Q7IgPlURCNF50HmOSw1n9Vv_LGJPG/view?usp=drive_link',
+                    2007: 'https://drive.google.com/file/d/1LC6XQYRUFhiV8NI5nxE83w2bHlLdVdql/view?usp=drive_link',
+                    2008: 'https://drive.google.com/file/d/120tSE2fkFYjin8Cr84Un-mAkKWOvxonj/view?usp=drive_link',
+                    2009: 'https://drive.google.com/file/d/1ETdfttIfrVVscorxMViwY0swXZgotjn5/view?usp=drive_link',
+                    2010: 'https://drive.google.com/file/d/1oJW8B0A4O_CBrncmuOFaNh3_M7DjyfC9/view?usp=drive_link',
+                    2011: 'https://drive.google.com/file/d/1TXgoW5OkdALqQ-qMLJFjWIcg9qT3qc9o/view?usp=drive_link',
+                    2012: 'https://drive.google.com/file/d/1-8Evt-ZUvO975OM2somRqgooGJ0Ue5Wi/view?usp=drive_link',
+                    2013: 'https://drive.google.com/file/d/1xdqp1zquhqbKrxNtugPPHr6bsjAOylM8/view?usp=drive_link',
+                    2014: 'https://drive.google.com/file/d/1abo0H8R5NZq7Od1jsYQuTubHNogrD1k1/view?usp=drive_link',
+                    2015: 'https://drive.google.com/file/d/1gJz4_t8600aCIW_zz14irZD4mSHV_JZG/view?usp=drive_link',
+                    2016: 'https://drive.google.com/file/d/1rJIDIj4EsZjKbQWdkWd6F1x_PS4zp9fJ/view?usp=drive_link',
+                    2017: 'https://drive.google.com/file/d/12FWyjAOnz5hXSt653iv5Ec_UhSm1QitT/view?usp=drive_link',
+                    2018: 'https://drive.google.com/file/d/1A1_oAPwuPRb-jRsgmQJzqIQJg2P39L1r/view?usp=drive_link',
+                    2019: 'https://drive.google.com/file/d/1VrBpeGKV0T1evI3W8fXqrEjFUfN6_XbC/view?usp=drive_link',
+                    2020: 'https://drive.google.com/file/d/1aamakGmaO8wU9yAK0FFhD_7hvA7LFb73/view?usp=drive_link',
+                    2021: 'https://drive.google.com/file/d/1VqUQ00napugN2tNQcfh8HJ8ATxaN0Py-/view?usp=drive_link',
+                    2022: 'https://drive.google.com/file/d/14EcSuw8myq0kqZbdQqYUfYV6cQaH-0UW/view?usp=drive_link',
+                    2023: 'https://drive.google.com/file/d/1InkfbyGRPtlIFS3BQt8FojpeWbfOIy4G/view?usp=drive_link',
+                }
+                
+                # Return the download link for the specified year
+                return file_links_by_year.get(year)
+
+            # Form data
+            if action == 'post-download-form-data':
+                name = request.data.get('name')
+                email = request.data.get('email')
+                institution = request.data.get('institution')
+                job_title = request.data.get('jobTitle')
+                dataset = request.data.get('dataset')
+                purpose_of_download = request.data.get('purposeOfDownload')
+                year = request.data.get('year')
+                # Save the form data to the database
+                download_request = DownloadRequest(
+                    name=name,
+                    email=email,
+                    institution=institution,
+                    job_title=job_title,
+                    dataset=dataset,
+                    purpose_of_download=purpose_of_download
+                )
+                download_request.save()
+                
+                download_link = get_download_link(year)
+
+                return Response({'success': 'success', 'downloadURL': download_link}, status=status.HTTP_200_OK)
+
+            
 
             #============= EVI ==========*/
             if action == 'get-evi-map':

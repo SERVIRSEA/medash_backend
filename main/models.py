@@ -54,6 +54,21 @@ class APIKey(models.Model):
         # Hash the input string using a strong cryptographic hash function (e.g., SHA-256)
         return hashlib.sha256(input_str.encode()).hexdigest()
 
+class DownloadRequest(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    institution = models.CharField(max_length=254)
+    job_title = models.CharField(max_length=100)
+    dataset = models.CharField(max_length=100)
+    purpose_of_download = models.TextField()
+    downloaded_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = 'Downloaded User Info'
+
+    def __str__(self):
+        return self.name
+
 class LandCoverNational(models.Model):
     country = models.CharField(max_length=100)
     landcover = models.CharField(max_length=100)

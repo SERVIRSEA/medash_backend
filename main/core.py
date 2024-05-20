@@ -448,7 +448,8 @@ class GEEApi():
             }
         except Exception as e:
             return {
-                'success': 'not success'
+                'success': 'not success',
+                'error': str(e)
             }
 
     # -------------------------------------------------------------------------
