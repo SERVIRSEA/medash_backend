@@ -402,12 +402,13 @@ class GEEApi():
                     'crs': 'EPSG:4326',
                     'region': self.geometry
                 })
-
+            # return dnldURL
             return {
                 'downloadURL': dnldURL,
                 'success': 'success'
             }
         except Exception as e:
+            # print(e)
             return {
                 'success': 'not success'
             }
@@ -794,7 +795,6 @@ class GEEApi():
         binary_image = image.rename(['binary']).selfMask()
 
         try:
-            print('download sar')
             dnldURL = binary_image.getDownloadURL({
                     'name': 'SARAlert'+str(year),
                     'scale': 100,
@@ -1080,10 +1080,11 @@ class GEEApi():
                 return {
                     'downloadURL': dnldURL,
                     'success': 'success'
-                        }
+                }
             except Exception as e:
                 return {
-                    'success': 'not success'
+                    'success': 'not success',
+                    'error': str(e)
                 }
         if get_image:
             return gain_image
