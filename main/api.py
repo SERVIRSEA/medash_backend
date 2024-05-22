@@ -1,5 +1,6 @@
 import os, json
 import orjson
+import logging
 from django.shortcuts import render
 from django.contrib.staticfiles import finders
 from django.views.decorators.csrf import csrf_exempt
@@ -13,6 +14,8 @@ from .dbcore import DBData
 from .download_link import DownloadLink
 from .authentication import APIKeyAuthentication
 from .models import DownloadRequest
+
+logger = logging.getLogger('main')
 
 @csrf_exempt 
 @api_view(['GET', 'POST'])
@@ -183,9 +186,8 @@ def api(request):
                     
                     if download_link:
                         return Response({'success': 'success', 'downloadURL': download_link}, status=status.HTTP_200_OK)
-                    else:
-                        return Response({'error': 'Download link could not be generated.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 except Exception as e:
+                    logger.error('Error getting download URL: %s', e, exc_info=True)
                     # Return error response if an exception occurs
                     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             

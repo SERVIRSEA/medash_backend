@@ -9,3 +9,4 @@ main/__pycache__/
 main/migrations/
 main/__pycache__/*
 main/migrations/*
+logs/

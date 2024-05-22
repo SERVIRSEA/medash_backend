@@ -1,9 +1,12 @@
 import os, ee, time, json
 import orjson
+import logging
 from datetime import datetime, timedelta, date
 from ee.ee_exception import EEException
 from django.http import JsonResponse
 from django.conf import settings
+
+logger = logging.getLogger('main')
 
 class GEEApi():
     TREE_CANOPY = ee.ImageCollection(settings.TREE_CANOPY)
@@ -1082,6 +1085,7 @@ class GEEApi():
                     'success': 'success'
                 }
             except Exception as e:
+                logger.error('Error getting download URL: %s', e, exc_info=True)
                 return {
                     'success': 'not success',
                     'error': str(e)
@@ -1239,7 +1243,6 @@ class GEEApi():
                     'success': 'success'
                         }
             except Exception as e:
-                print(e)
                 return {
                     'success': 'not success'
                 }
