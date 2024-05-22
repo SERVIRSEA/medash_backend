@@ -105,7 +105,7 @@ class DownloadLink:
             2004: 'https://drive.google.com/file/d/1_LNYYNZSCvXA2UBAAt4USr2bYPpECj1E/view?usp=drive_link',
             2005: 'https://drive.google.com/file/d/1StNzeu_NW7yWOBfs9p5--uAJiT6FJxUW/view?usp=drive_link',
             2006: 'https://drive.google.com/file/d/1om38BuqDK2TDqrk5ShW3J2-Zgr5pfBX9/view?usp=drive_link',
-            2007: '',
+            2007: 'https://drive.google.com/file/d/1295UteCY1YxFlEjRllu0mESNswvMBHV8/view?usp=drive_link',
             2008: 'https://drive.google.com/file/d/1Ym5oRE_KXHzTdJT5SFP25BOSMoV0mIS4/view?usp=drive_link',
             2009: 'https://drive.google.com/file/d/1Kzz4yS03iDd9YBCt8lJThMYeUTz9ROwP/view?usp=drive_link',
             2010: 'https://drive.google.com/file/d/1jm1fL8_s6YDKCQiVV_dixAdL0nrMk9iV/view?usp=drive_link',
@@ -124,5 +124,50 @@ class DownloadLink:
             2023: 'https://drive.google.com/file/d/18pyF6kHR9x78dKyp4Wgxj0H4olUwZs4O/view?usp=drive_link',
         }
         
+        # Return the download link for the specified year
+        return file_links_by_year.get(year)
+
+    def get_download_link_fire_hotspot(self, year):
+        # Dictionary containing download links mapped by year
+        file_links_by_year = {
+            2000: 'https://drive.google.com/file/d/1dHLxChpoPbwUk9XdenOZdD7iws0moZ7j/view?usp=drive_link',
+            2001: 'https://drive.google.com/file/d/1SZIguE5THXXZudNDxmH_-WIIu8la-eSf/view?usp=drive_link',
+            2002: 'https://drive.google.com/file/d/1VKLnP5pYSr7tH_2pwlLGxbIEcso4Mobj/view?usp=drive_link',
+            2003: 'https://drive.google.com/file/d/1yUV1-52PF3iBFHsRD0rPkjL4xLdh9geE/view?usp=drive_link',
+            2004: 'https://drive.google.com/file/d/1eFW_6o4eoZQVro3dlxh-G053hiuAANaA/view?usp=drive_link',
+            2005: 'https://drive.google.com/file/d/1eh0CP9KzAQIQcUcFpdREaVJo1hwWu_AA/view?usp=drive_link',
+            2006: 'https://drive.google.com/file/d/11DP10g3jn3b-DP_cV49-Hp-4Y6YNdDg0/view?usp=drive_link',
+            2007: 'https://drive.google.com/file/d/1Fqpe_gSUHoMvhgixgoFO-Eheji_3sOod/view?usp=drive_link',
+            2008: 'https://drive.google.com/file/d/1esXs7CPeXrDyyKhcOS3t15m3OsHZocHC/view?usp=drive_link',
+            2009: 'https://drive.google.com/file/d/1G1k3zsC0-Wj9zuAzz9c_8uHfKgwBC7FG/view?usp=drive_link',
+            2010: 'https://drive.google.com/file/d/1idAzO7_181g3JjnNJaBVw2DbY6AOv0v3/view?usp=drive_link',
+            2011: 'https://drive.google.com/file/d/1-vAUlaWzf6PiCDiWz5qh6xtPCXPGOnQ2/view?usp=drive_link',
+            2012: 'https://drive.google.com/file/d/12wpMsh3NsYZ3PhHI5prfw0bG1dhEm0OP/view?usp=drive_link',
+            2013: 'https://drive.google.com/file/d/1XspbHWy7Ihg_hEx1BT04ZWmm_9RNwOV9/view?usp=drive_link',
+            2014: 'https://drive.google.com/file/d/1jcaRfRb5GjR3_CLHuB3hBE1TYvIByrTN/view?usp=drive_link',
+            2015: 'https://drive.google.com/file/d/1L6kyVIlmjCHlk5rp1vm8hDaaNbK_-U88/view?usp=drive_link',
+            2016: 'https://drive.google.com/file/d/1ltGQmirL69caJ7EXhapzxjrXRtiSn29V/view?usp=drive_link',
+            2017: 'https://drive.google.com/file/d/1MWE7RWxvrdRDsD8lpM98gNtACegecmdo/view?usp=drive_link',
+            2018: 'https://drive.google.com/file/d/1wVSe6fgwAx1tUJW8l8LxKAGqHMHJ_Ils/view?usp=drive_link',
+            2019: 'https://drive.google.com/file/d/1VbfjoErh11wgw6silkZ9Vya6AvqPDBy4/view?usp=drive_link',
+            2020: 'https://drive.google.com/file/d/1KDGc4Oxn7n5UdndZbZpVdTdD9qHCjEKg/view?usp=drive_link',
+            2021: 'https://drive.google.com/file/d/1KKMKknY_5TE3Hf-e-J-H3Zb4XqWC5AEX/view?usp=drive_link',
+            2022: 'https://drive.google.com/file/d/17yVA_v7cnR5yTOw6c0YoXGUvc685HmDC/view?usp=drive_link',
+            2023: 'https://drive.google.com/file/d/19B5ackk2N4OO_7pBpCrEZCPxS53lIXKg/view?usp=drive_link',
+        }
+        
+        # Return the download link for the specified year
+        return file_links_by_year.get(year)
+
+    def get_download_link_gladalert(self, year):
+        # Dictionary containing download links mapped by year
+        file_links_by_year = {
+            2018: 'https://drive.google.com/file/d/1gB8LsqGxORDxvfQNHiMhubTxEo954lZ9/view?usp=drive_link',
+            2019: 'https://drive.google.com/file/d/15V-HYiRQ8TcNygRVftojJFj05h0YNDna/view?usp=drive_link',
+            2020: 'https://drive.google.com/file/d/1siMrKbajJlyaDCWIsqpxib2lUZRvMVGG/view?usp=drive_link',
+            2021: 'https://drive.google.com/file/d/1Mq_wToWGoASq9a82KTVDuoThEC4IIo3P/view?usp=drive_link',
+            2022: 'https://drive.google.com/file/d/1ZmGU56nlighJwnp992n2JVg3LKaKbD8w/view?usp=drive_link',
+            2023: 'https://drive.google.com/file/d/1welQ6n2Ugb4-QeOzulNYLThrecZzh0vN/view?usp=drive_link',
+        }
         # Return the download link for the specified year
         return file_links_by_year.get(year)

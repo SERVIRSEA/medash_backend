@@ -160,17 +160,19 @@ def api(request):
                         if data['success'] == 'success':
                             download_link = data['downloadURL']
                     elif dataset == 'FireHotspot':
-                        data = core.downloadFirmBurnedArea(str(year))
-                        if data['success'] == 'success':
-                            download_link = data['downloadURL']
+                        download_link = dlink.get_download_link_fire_hotspot(year)
+                        # data = core.downloadFirmBurnedArea(str(year))
+                        # if data['success'] == 'success':
+                        #     download_link = data['downloadURL']
                     elif dataset == 'SARAlert':
                         data = core.downloadSARAlertMap(str(year))
                         if data['success'] == 'success':
                             download_link = data['downloadURL']
                     elif dataset == 'GLADAlert':
-                        data = core.downloadGLADAlertMap(str(year))
-                        if data['success'] == 'success':
-                            download_link = data['downloadURL']
+                        download_link = dlink.get_download_link_gladalert(year)
+                        # data = core.downloadGLADAlertMap(str(year))
+                        # if data['success'] == 'success':
+                        #     download_link = data['downloadURL']
                     elif dataset == 'Drought':
                         data = core.downloadDroughtIndexMap(index, date)
                         if data['success'] == 'success':
