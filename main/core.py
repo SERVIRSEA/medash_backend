@@ -173,7 +173,9 @@ class GEEApi():
             self.geometry = ee.FeatureCollection(GEEApi.CAMBODIA_COUNTRY_BOUNDARY).filter(ee.Filter.eq("NAME_ENGLI", area_id)).geometry()
 
         elif area_type == "protected_area":
-            self.geometry = ee.FeatureCollection(GEEApi.PROTECTED_AREA).filter(ee.Filter.eq("map_id", area_id)).geometry()
+            area_id = int(area_id)
+            self.geometry = ee.FeatureCollection(GEEApi.PROTECTED_AREA).filter(ee.Filter.eq("PA_ID", area_id)).geometry()
+            # print(self.geometry)
 
         elif area_type == "province":
             area_id = int(area_id)
