@@ -74,7 +74,8 @@ def api(request):
             'get-sar-biweekly-alert',
             'download-sar-biweekly-alert',
             'get-forestchange-chart',
-            'post-download-form-data'    
+            'post-download-form-data',
+            'get-sarfdas-alert'    
         ]
 
         if action in request_methods:
@@ -454,6 +455,13 @@ def api(request):
                 else:
                     return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
                 
+            elif action == 'get-sarfdas-alert':
+                data = core.getSARFDASAlertMap(year)
+                if data:
+                    return Response(data)
+                else:
+                    return Response({'error': 'No data found for your request.'}, status=status.HTTP_404_NOT_FOUND)
+            
             #============= Fire Hotspot Monitoring ==========*/
             elif action == 'get-burned-area':
                 data = core.getBurnedMap(year, area_type)

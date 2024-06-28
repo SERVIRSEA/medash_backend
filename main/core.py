@@ -22,6 +22,7 @@ class GEEApi():
     LANDCOVER = ee.ImageCollection(settings.LANDCOVER)
     SAR_ALERT = settings.SAR_ALERT
     SAR_BIWEEKLY_ALERT = settings.SAR_BIWEEKLY_ALERT
+    SARFDAS_ALERT = settings.SARFDAS_ALERT
     
     NDVI = settings.NDVI
     VHI = settings.VHI
@@ -334,7 +335,7 @@ class GEEApi():
 
     def ComputePolygonTimeSeries(self,ref_start,ref_end,series_start,series_end):
 
-        """Returns a series of brightness over time for the polygon."""
+        """Returns a series of EVI over time for the polygon."""
         ref_start = str(ref_start) + '-01-01'
         ref_end = str(ref_end) + '-12-31'
         series_start = str(series_start) + '-01-01'
@@ -1914,4 +1915,26 @@ class GEEApi():
             return {
                 'geeURL': map_url
             }
+
+    def getSARFDASAlertMap(self, year):
+        alertCollection = ee.ImageCollection(self.SARFDAS_ALERT)
+
+        # Filter Date
+        alertCollection = alertCollection.filter(ee.Filter.calendarRange(int(year), int(year), 'year'))
+
+        # select band name and call max() to combine all images in the collection
+        alertImg = alertCollection.select('combinedAlerts').mosaic()
+
+        alertImg = alertImg.selfMask()
+
+        # clip the image with roi
+        alertImg = alertImg.clip(self.geometry)
+
+        vis_params = {'min': 1, 'max': 365, 'palette': ["red"]}
+
+        map_url = self.getTileLayerUrl(alertImg.visualize(**vis_params))
+
+        return {
+            'geeURL': map_url
+        }
    
